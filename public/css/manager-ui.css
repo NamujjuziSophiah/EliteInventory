@@ -1,0 +1,113 @@
+/* Manager UI base styles - lightweight design system for forms and dashboards */
+:root {
+    --mi-bg: #ffffff;
+    --mi-accent: #2563eb;
+    /* slightly richer blue */
+    --mi-muted: #6b7280;
+    --mi-card-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+    --mi-radius: 8px;
+}
+
+/* Card/tile styles used on dashboards */
+.kpi-card {
+    border-radius: var(--mi-radius);
+    box-shadow: var(--mi-card-shadow);
+    background: var(--mi-bg);
+    padding: 1rem;
+}
+
+/* Sidebar styles for dashboards */
+.dashboard-sidebar {
+    width: 240px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    border-right: 1px solid rgba(0, 0, 0, 0.04);
+    min-height: 100vh;
+}
+
+.dashboard-sidebar .nav-link {
+    color: #254061;
+    font-weight: 600;
+}
+
+.dashboard-sidebar .nav-link.active,
+.dashboard-sidebar .nav-link:hover {
+    background: rgba(13, 110, 253, 0.06);
+    border-radius: 6px;
+}
+
+/* Slightly more modern cards */
+.card-modern {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+}
+
+/* Increase padding and spacing for better print and visual density */
+.card {
+    padding: 1.25rem !important;
+}
+
+.kpi-card {
+    padding: 1.25rem;
+}
+
+/* Make list-group items slightly cleaner */
+.dashboard-sidebar .list-group-item {
+    border: none;
+    padding: .65rem .75rem;
+}
+
+
+
+/* Form enhancements */
+.form-section {
+    background: #f8f9fb;
+    border-radius: var(--mi-radius);
+    padding: 1rem;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.03) inset;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Line item table for purchases/sales */
+.line-items-table thead th {
+    font-weight: 700;
+}
+
+.line-items-table tbody tr td {
+    vertical-align: middle;
+}
+
+.btn-icon {
+    padding: .35rem .6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.small-muted {
+    color: var(--mi-muted);
+    font-size: 0.85rem;
+}
+
+/* Utility */
+.text-muted-2 {
+    color: rgba(0, 0, 0, 0.55);
+}
+
+/* Make inputs and selects slightly larger for POS use */
+.form-control,
+.form-select {
+    padding: .5rem .65rem;
+    font-size: .95rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 767px) {
+    .kpi-card {
+        padding: .65rem;
+    }
+}

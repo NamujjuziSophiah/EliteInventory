@@ -1,0 +1,62 @@
+/* Print styles for receipts and compact pages */
+@media print {
+
+    /* Hide navbars, sidebars, and controls */
+    nav,
+    .navbar,
+    .dashboard-sidebar,
+    .offcanvas,
+    .btn,
+    .dropdown,
+    footer,
+    .cart-summary {
+        display: none !important;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        color: #000;
+        background: #fff;
+    }
+
+    .container,
+    .container-fluid,
+    main,
+    .card {
+        box-shadow: none !important;
+    }
+
+    /* Receipt specific */
+    #receiptContent,
+    #receiptModalBody,
+    .receipt {
+        width: 100%;
+        font-size: 12px;
+    }
+
+    #receiptContent table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #receiptContent table th,
+    #receiptContent table td {
+        border-bottom: 1px solid #ddd;
+        padding: 4px 6px;
+    }
+
+    /* Make text denser so receipts fit smaller paper */
+    body,
+    p,
+    div,
+    span {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Avoid page breaks inside the receipt */
+    #receiptContent {
+        page-break-inside: avoid;
+    }
+}
