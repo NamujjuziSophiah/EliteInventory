@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@section('content')
 <div class="container">
+    @include('partials.back-button')
     <h1>Sales</h1>
 
     <div class="mb-3">

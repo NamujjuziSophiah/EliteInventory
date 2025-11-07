@@ -19,6 +19,10 @@
             <input name="phone" class="form-control" value="{{ $customer->phone }}">
         </div>
         <div class="mb-3">
+            <label class="form-label">Credit limit</label>
+            <input name="credit_limit" type="number" step="0.01" class="form-control" value="{{ old('credit_limit', $customer->credit_limit ?? 0) }}">
+        </div>
+        <div class="mb-3">
             <label class="form-label">Notes</label>
             <textarea name="notes" class="form-control">{{ $customer->notes }}</textarea>
         </div>

@@ -77,71 +77,157 @@
         </div>
         <div class="container-fluid">
             <div class="row g-3">
-                <!-- Stats Cards -->
+                <!-- Stats Cards (styled with gradients) -->
                 <div class="col-12 col-md-3">
-                    <div class="card card-modern p-3 h-100">
+                    <div class="card text-white p-3 h-100 bg-gradient-blue">
                         <h6 class="mb-1">Sales</h6>
                         <div class="display-6">{{ $totalSales ?? 0 }}</div>
-                        <div class="small text-muted">Transactions</div>
+                        <div class="small">Transactions</div>
                     </div>
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <div class="card card-modern p-3 h-100">
+                    <div class="card text-white p-3 h-100 bg-gradient-orange">
                         <h6 class="mb-1">Revenue</h6>
                         <div class="display-6">{{ format_currency($totalSalesValue ?? 0) }}</div>
-                        <div class="small text-muted">Total sales value</div>
+                        <div class="small">Total sales value</div>
                     </div>
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <div class="card card-modern p-3 h-100">
+                    <div class="card text-white p-3 h-100 bg-gradient-green">
                         <h6 class="mb-1">Today's Sales</h6>
                         <div class="display-6">{{ format_currency($todaysSalesValue ?? 0) }}</div>
-                        <div class="small text-muted">({{ $todaysSalesCount ?? 0 }} tx)</div>
+                        <div class="small">({{ $todaysSalesCount ?? 0 }} tx)</div>
                     </div>
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <div class="card card-modern p-3 h-100">
+                    <div class="card text-white p-3 h-100 bg-gradient-sky">
                         <h6 class="mb-1">Products</h6>
                         <div class="display-6">{{ $totalProducts ?? 0 }}</div>
-                        <div class="small text-muted">Total products</div>
+                        <div class="small">Total products</div>
                     </div>
                 </div>
 
-                <!-- Charts Section -->
-                <div class="col-12 col-lg-8">
-                    <div class="card card-modern p-3 h-100">
+                <!-- Charts Section (pie) -->
+                <div class="col-12 col-lg-6">
+                    <div class="card p-3 h-100">
                         <h5>Sales (last 7 days)</h5>
-                        <canvas id="salesChart" height="150" data-labels='@json($salesTrendLabels ?? [])' data-values='@json($salesTrendData ?? [])'></canvas>
+                        <div style="height:200px"><canvas id="salesPie" data-labels='@json($salesTrendLabels ?? [])' data-values='@json($salesTrendData ?? [])'></canvas></div>
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-4">
-                    <div class="card card-modern p-3 h-100">
+                <!-- Low stock card (doughnut) -->
+                <div class="col-12 col-lg-6">
+                    <div class="card p-3 h-100">
                         <h5>Low stock</h5>
-                        <ul class="list-unstyled mb-0">
-                            @forelse($lowStock ?? [] as $p)
-                                <li class="py-1">{{ data_get($p, 'name', 'Unnamed') }} — {{ $productQuantityColumn ? data_get($p, $productQuantityColumn, '0') : '0' }}</li>
-                            @empty
-                                <li class="text-muted">No low-stock products</li>
-                            @endforelse
-                        </ul>
+                        @php
+                            $lsLabels = [];
+                            $lsValues = [];
+                            foreach($lowStock ?? [] as $p) {
+                                $lsLabels[] = data_get($p, 'name', 'Unnamed');
+                                $lsValues[] = $productQuantityColumn ? data_get($p, $productQuantityColumn, 0) : data_get($p, 'stock', 0);
+                            }
+                            // produce a top-8 array that works whether $lowStock is array or Collection
+                            if (is_array($lowStock ?? null)) {
+                                $topLowStock = array_slice($lowStock, 0, 8);
+                            } elseif (($lowStock ?? null) instanceof \Illuminate\Support\Collection) {
+                                $topLowStock = $lowStock->slice(0,8)->all();
+                            } else {
+                                $topLowStock = [];
+                            }
+                        @endphp
+                        <div class="row g-3 align-items-center">
+                            <div class="col-6" style="min-height:180px">
+                                <canvas id="lowStockDoughnut" data-labels='@json($lsLabels)' data-values='@json($lsValues)'></canvas>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Top low-stock items</div>
+                                <ul class="list-unstyled mt-2 mb-0">
+                                    @forelse($topLowStock as $p)
+                                        <li class="py-1">{{ data_get($p, 'name', 'Unnamed') }} — {{ $productQuantityColumn ? data_get($p, $productQuantityColumn, '0') : data_get($p, 'stock', '0') }}</li>
+                                    @empty
+                                        <li class="text-muted">No low-stock products</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-6">
-                    <div class="card card-modern p-3 h-100">
-                        <h5 class="mb-3">Recent Purchases</h5>
-                        @include('partials.transactions-table', ['rows' => $recentPurchases])
+                <!-- Clickable quick-cards linking to full feature pages -->
+                <div class="col-12">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.sales.index') ? route('admin.sales.index') : '#' }}" class="text-decoration-none">
+                                <div class="card bg-primary text-white p-3 h-100">
+                                    <h6 class="mb-1">Sales</h6>
+                                    <div class="display-6">{{ $totalSales ?? 0 }}</div>
+                                    <div class="small">View & export sales</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.purchases.index') ? route('admin.purchases.index') : '#' }}" class="text-decoration-none">
+                                <div class="card bg-success text-white p-3 h-100">
+                                    <h6 class="mb-1">Purchases</h6>
+                                    <div class="display-6">{{ $totalPurchases ?? 0 }}</div>
+                                    <div class="small">Manage purchases</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.products.index') ? route('admin.products.index') : '#' }}" class="text-decoration-none">
+                                <div class="card bg-info text-white p-3 h-100">
+                                    <h6 class="mb-1">Products</h6>
+                                    <div class="display-6">{{ $totalProducts ?? 0 }}</div>
+                                    <div class="small">Manage products</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.customers.index') ? route('admin.customers.index') : '#' }}" class="text-decoration-none">
+                                <div class="card bg-warning text-dark p-3 h-100">
+                                    <h6 class="mb-1">Customers</h6>
+                                    <div class="display-6">{{ $totalUsers ?? 0 }}</div>
+                                    <div class="small">Manage customers</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.reports.index') ? route('admin.reports.index') : '#' }}" class="text-decoration-none">
+                                <div class="card p-3 h-100 bg-gradient-reports text-white">
+                                    <h6 class="mb-1">Reports</h6>
+                                    <div class="display-6">Reports</div>
+                                    <div class="small">View analytics & exports</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.user_logs.index') ? route('admin.user_logs.index') : '#' }}" class="text-decoration-none">
+                                <div class="card p-3 h-100 bg-gradient-logs text-dark">
+                                    <h6 class="mb-1">Logs</h6>
+                                    <div class="display-6">Upload</div>
+                                    <div class="small">Upload or view custom logs</div>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-6">
-                    <div class="card card-modern p-3 h-100">
-                        <h5 class="mb-3">Recent Sales</h5>
-                        @include('partials.transactions-table', ['rows' => $recentSales])
+                <!-- Extra graphs area below quick-cards -->
+                <div class="col-12 mt-3">
+                    <div class="card p-3">
+                        <h6 class="mb-3">Additional Charts</h6>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <div style="height:220px"><canvas id="salesByCategory" data-labels='@json($salesByCategoryLabels ?? [])' data-values='@json($salesByCategoryData ?? [])'></canvas></div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div style="height:220px"><canvas id="revenueByPayment" data-labels='@json($revenuePaymentLabels ?? [])' data-values='@json($revenuePaymentData ?? [])'></canvas></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -165,110 +251,89 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 (function () {
-    const initialiseChart = () => {
-        const canvas = document.getElementById('salesChart');
-        if (!canvas) {
-            return;
-        }
+    function coloursFor(n) {
+        const base = [
+            '#4dc9f6','#f67019','#f53794','#537bc4','#acc236','#166a8f','#00a950','#58595b','#8549ba'
+        ];
+        const out = [];
+        for (let i=0;i<n;i++) out.push(base[i % base.length]);
+        return out;
+    }
 
-        // If the exact payload hasn't changed since last init, skip re-creating the chart.
-        const currentPayload = JSON.stringify({ labels: labelPayload, values: dataPayload });
-        if (canvas.dataset.lastPayload && canvas.dataset.lastPayload === currentPayload) {
-            console.debug('[admin salesChart] payload unchanged, skipping re-init');
-            return;
-        }
-
-        const labelPayload = canvas.dataset.labels || '[]';
-        const dataPayload = canvas.dataset.values || '[]';
-        let labels = [];
-        let values = [];
-
-        try {
-            labels = JSON.parse(labelPayload);
-        } catch (_) {
-            labels = [];
-        }
-
-        try {
-            const parsed = JSON.parse(dataPayload);
-            values = Array.isArray(parsed)
-                ? parsed.map((value) => {
-                    const numeric = Number(value);
-                    return Number.isFinite(numeric) ? numeric : 0;
-                })
-                : [];
-        } catch (_) {
-            values = [];
-        }
-
-        // Dev debug: show payload sizes
-        try {
-            console.debug('[admin salesChart] initialise called', { labelsCount: labels.length, valuesCount: values.length, payloadPreview: { labels: labels.slice(0,5), values: values.slice(0,5) } });
-        } catch (e) { /* ignore */ }
-
+    const initPie = () => {
+        const canvas = document.getElementById('salesPie');
+        if (!canvas) return;
+        const labels = JSON.parse(canvas.dataset.labels || '[]');
+        const values = JSON.parse(canvas.dataset.values || '[]').map(v => Number(v) || 0);
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            return;
-        }
-
-        if (canvas._chartInstance && typeof canvas._chartInstance.destroy === 'function') {
-            try { console.debug('[admin salesChart] destroying previous chart'); } catch (e) {}
-            canvas._chartInstance.destroy();
-        }
-
+        if (!ctx) return;
+        if (canvas._chartInstance && typeof canvas._chartInstance.destroy === 'function') canvas._chartInstance.destroy();
         canvas._chartInstance = new Chart(ctx, {
-            type: 'line',
+            type: 'pie',
             data: {
                 labels,
                 datasets: [{
-                    label: 'Revenue',
                     data: values,
-                    borderColor: 'rgba(54,162,235,1)',
-                    backgroundColor: 'rgba(54,162,235,0.1)',
-                    fill: true,
-                    tension: 0.2,
-                }],
+                    backgroundColor: coloursFor(values.length),
+                }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                    },
-                },
-            },
+            options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400, loop: false } }
         });
+    };
 
-        try {
-            canvas.dataset.lastPayload = currentPayload;
-        } catch (e) {}
-        canvas.dataset.chartInitialised = '1';
-        try { console.debug('[admin salesChart] chart created'); } catch (e) {}
+    const initExtraCharts = () => {
+        // salesByCategory (bar)
+        const byCat = document.getElementById('salesByCategory');
+        if (byCat) {
+            const labels = JSON.parse(byCat.dataset.labels || '[]');
+            const values = JSON.parse(byCat.dataset.values || '[]').map(v => Number(v) || 0);
+            const ctx = byCat.getContext('2d');
+            if (byCat._chartInstance && typeof byCat._chartInstance.destroy === 'function') byCat._chartInstance.destroy();
+            byCat._chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Sales', data: values, backgroundColor: coloursFor(values.length) }] },
+                options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400, loop: false } }
+            });
+        }
+
+        // revenueByPayment (doughnut)
+        const byPay = document.getElementById('revenueByPayment');
+        if (byPay) {
+            const labels = JSON.parse(byPay.dataset.labels || '[]');
+            const values = JSON.parse(byPay.dataset.values || '[]').map(v => Number(v) || 0);
+            const ctx = byPay.getContext('2d');
+            if (byPay._chartInstance && typeof byPay._chartInstance.destroy === 'function') byPay._chartInstance.destroy();
+            byPay._chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: coloursFor(values.length) }] },
+                options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400, loop: false } }
+            });
+        }
+    };
+
+    const initLowStock = () => {
+        const canvas = document.getElementById('lowStockDoughnut');
+        if (!canvas) return;
+        const labels = JSON.parse(canvas.dataset.labels || '[]');
+        const values = JSON.parse(canvas.dataset.values || '[]').map(v => Number(v) || 0);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        if (canvas._chartInstance && typeof canvas._chartInstance.destroy === 'function') canvas._chartInstance.destroy();
+        canvas._chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{ data: values, backgroundColor: coloursFor(values.length) }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400, loop: false } }
+        });
     };
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialiseChart, { once: true });
+        document.addEventListener('DOMContentLoaded', () => { initPie(); initExtraCharts(); initLowStock(); }, { once: true });
     } else {
-        initialiseChart();
+        initPie(); initExtraCharts(); initLowStock();
     }
-
-    // Listen for Turbo visits but only once to avoid accumulating listeners
-    document.addEventListener('turbo:load', function onTurbo() {
-        initialiseChart();
-        document.removeEventListener('turbo:load', onTurbo);
-    }, { once: true });
-
-    // Mark global initialized flag after successful init
-    document.addEventListener('DOMContentLoaded', () => {
-        const c = document.getElementById('salesChart');
-        if (c) {
-            window.__chartsInitialized = window.__chartsInitialized || {};
-            if (c.dataset.chartInitialised === '1') {
-                window.__chartsInitialized['salesChart'] = true;
-            }
-        }
-    }, { once: true });
 })();
 </script>
 @endpush

@@ -24,6 +24,16 @@
         </div>
 
         <div class="mb-3">
+            <label class="form-label">Unit</label>
+            <select name="unit" class="form-select">
+                <option value="">-- select unit --</option>
+                @foreach(['kilograms','litres','metres','bags each','packets','sackets','box','bars'] as $u)
+                    <option value="{{ $u }}">{{ ucwords($u) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="mb-3">
             <label class="form-label">Markup percent (%) <small class="text-muted">optional</small></label>
             <input name="markup_percent" class="form-control" type="number" step="0.01" min="0" placeholder="Leave empty to use default">
         </div>

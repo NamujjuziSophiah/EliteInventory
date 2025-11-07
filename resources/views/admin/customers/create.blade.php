@@ -18,6 +18,10 @@
             <input name="phone" class="form-control">
         </div>
         <div class="mb-3">
+            <label class="form-label">Credit limit</label>
+            <input name="credit_limit" type="number" step="0.01" class="form-control" value="{{ old('credit_limit', 0) }}">
+        </div>
+        <div class="mb-3">
             <label class="form-label">Notes</label>
             <textarea name="notes" class="form-control"></textarea>
         </div>

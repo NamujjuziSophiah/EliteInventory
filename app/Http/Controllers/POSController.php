@@ -48,7 +48,8 @@ class POSController extends Controller
 
         $customers = [];
         if (Schema::hasTable('customers')) {
-            $customers = DB::table('customers')->select('id','name','phone')->limit(200)->get();
+            // include credit_limit and balance so POS can display customer credit info without extra requests
+            $customers = DB::table('customers')->select('id','name','phone','credit_limit','balance')->limit(200)->get();
         }
 
         return view('cashier.pos', compact('salesCount','salesTotal','lowStock','customers'));

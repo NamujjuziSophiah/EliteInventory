@@ -26,6 +26,20 @@
             <label class="form-label">SKU</label>
             <input name="sku" value="{{ $product->sku }}" class="form-control">
         </div>
+
+        <div class="mb-3">
+            <label class="form-label">Unit</label>
+            <select name="unit" class="form-select">
+                <option value="">-- select unit --</option>
+                @php $units = ['kilograms','litres','metres','bags each','packets','sackets','box','bars']; @endphp
+                @foreach($units as $u)
+                    <option value="{{ $u }}" @if(($product->unit ?? '') == $u) selected @endif>{{ ucwords($u) }}</option>
+                @endforeach
+                @if(!empty($product->unit) && !in_array($product->unit, $units))
+                    <option value="{{ $product->unit }}" selected>{{ $product->unit }} (current)</option>
+                @endif
+            </select>
+        </div>
         <div class="mb-3">
             <label class="form-label">Category</label>
             <select name="category_id" class="form-select">
@@ -89,7 +103,13 @@
             <label class="form-label">Image</label>
             <input name="image" type="file" class="form-control">
             @if($product->image_path)
-                <div class="mt-2"><img src="{{ asset('storage/'.$product->image_path) }}" width="120"></div>
+                @php
+                    $imgSrc = '/images/avatar-placeholder.png';
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($product->image_path)) {
+                        $imgSrc = route('storage.files.show', ['path' => $product->image_path]);
+                    }
+                @endphp
+                <div class="mt-2"><img src="{{ $imgSrc }}" width="120"></div>
             @endif
         </div>
         <div class="d-flex">

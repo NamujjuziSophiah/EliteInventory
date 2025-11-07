@@ -21,19 +21,27 @@ class DashboardService
         ];
     }
 
-    public function getTodaysSales(?int $userId = null): array
+    /**
+     * Get today's sales. If $userId is provided the query filters by sales.user_id.
+     * If $customerId is provided the query filters by sales.customer_id.
+     */
+    public function getTodaysSales(?int $userId = null, ?int $customerId = null): array
     {
         $count = 0;
         $total = 0.0;
         if (Schema::hasTable('sales')) {
             $today = Carbon::today();
             $query = DB::table('sales')->whereDate('created_at', $today);
-            if ($userId && Schema::hasColumn('sales', 'user_id')) {
+            if ($customerId && Schema::hasColumn('sales', 'customer_id')) {
+                $query->where('customer_id', $customerId);
+            } elseif ($userId && Schema::hasColumn('sales', 'user_id')) {
                 $query->where('user_id', $userId);
             }
             $count = $query->count();
             $sumQ = DB::table('sales')->whereDate('created_at', $today);
-            if ($userId && Schema::hasColumn('sales', 'user_id')) {
+            if ($customerId && Schema::hasColumn('sales', 'customer_id')) {
+                $sumQ->where('customer_id', $customerId);
+            } elseif ($userId && Schema::hasColumn('sales', 'user_id')) {
                 $sumQ->where('user_id', $userId);
             }
             $total = (float) $sumQ->sum('total');

@@ -16,6 +16,10 @@
         <a class="navbar-brand" href="#">POS</a>
         <div class="d-flex ms-3">
             <a href="{{ route('cashier.dashboard') }}" class="btn btn-sm btn-outline-primary me-2">Dashboard</a>
+            <form id="pos-logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-danger me-2">Logout</button>
+            </form>
         </div>
         <div class="d-flex align-items-center">
             <span class="me-3"><i class="fa-solid fa-cash-register"></i> Cashier</span>
@@ -86,7 +90,7 @@
                                         <select id="customerSelect" class="form-select">
                                         <option value="">-- Select customer --</option>
                                         @foreach(collect($customers ?? []) as $c)
-                                            <option value="{{ $c->id }}">{{ $c->name }} @if(!empty($c->phone)) ({{ $c->phone }}) @endif</option>
+                                            <option value="{{ $c->id }}">{{ $c->name }} @if(!empty($c->phone)) ({{ $c->phone }}) @endif @if(isset($c->credit_limit)) — Limit: {{ number_format($c->credit_limit,2) }}@endif</option>
                                         @endforeach
                                         </select>
                                         <button id="addCustomerBtn" class="btn btn-sm btn-outline-primary ms-2" title="Add customer">+</button>
@@ -213,203 +217,5 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/pos.js') }}"></script>
-                sel.appendChild(opt);
-                sel.value = data.customer.id;
-                addCustomerModal.hide();
-                // trigger change to fetch balances
-                sel.dispatchEvent(new Event('change'));
-            } else {
-                err.style.display = 'block'; err.innerText = data.error || 'Unable to create customer';
-            }
-        } catch(e) { err.style.display = 'block'; err.innerText = 'Request failed'; }
-    });
-
-    document.getElementById('scanBtn').addEventListener('click', async function(){
-        const barcode = document.getElementById('barcode').value;
-        if (!barcode) return alert('Enter or scan a barcode');
-
-        const res = await fetch('/cashier/scan', {method: 'POST', headers: {'Content-Type':'application/json','X-CSRF-TOKEN': csrfToken}, body: JSON.stringify({barcode})});
-        const data = await res.json();
-        if (data.found) {
-            renderProductCard(data.product, data.available ?? 0);
-        } else {
-            alert('Product not found');
-        }
-    });
-
-    // allow barcode scanners (which send an Enter) to trigger scan
-    document.getElementById('barcode').addEventListener('keydown', function(e){
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('scanBtn').click();
-        }
-    });
-    // credit toggle still exists but customer selector is always visible now
-    const creditToggle = document.getElementById('creditToggle');
-    const customerWrap = document.getElementById('customerSelectWrap');
-    creditToggle.addEventListener('change', function(){
-        // no longer hide the customer selector; selection is optional for cash/mobile payments
-    });
-
-    // split payment modal wiring
-    const splitBtn = document.getElementById('splitBtn');
-    const splitModalEl = document.getElementById('splitModal');
-    const splitTotalEl = document.getElementById('splitTotal');
-    const splitCash = document.getElementById('splitCash');
-    const splitMobile = document.getElementById('splitMobile');
-    const splitCredit = document.getElementById('splitCredit');
-    const confirmSplit = document.getElementById('confirmSplit');
-    const splitModal = new bootstrap.Modal(splitModalEl);
-    splitBtn.addEventListener('click', function(){
-        const rawTotal = cart.reduce((s,i)=>s + (i.price * i.qty),0);
-        const perItemDiscountTotal = cart.reduce((s,i)=>s + (parseFloat(i.discount || 0) || 0),0);
-        const overallDiscount = parseFloat(document.getElementById('cartDiscount')?.value || 0) || 0;
-        const totalAfter = Math.max(0, rawTotal - perItemDiscountTotal - overallDiscount);
-        // store numeric total on modal element and show formatted text
-        splitModalEl.dataset.total = totalAfter;
-        splitTotalEl.innerText = formatCurrencyJS(totalAfter);
-        splitCash.value = totalAfter.toFixed(2);
-        splitMobile.value = '0.00';
-        splitCredit.value = '0.00';
-        splitModal.show();
-    });
-
-    confirmSplit.addEventListener('click', function(){
-        const total = parseFloat(splitModalEl.dataset.total || 0);
-        const cash = parseFloat(splitCash.value || 0) || 0;
-        const mobile = parseFloat(splitMobile.value || 0) || 0;
-        const credit = parseFloat(splitCredit.value || 0) || 0;
-        const sum = +(cash + mobile + credit).toFixed(2);
-        if (Math.abs(sum - total) > 0.01) {
-            return alert('Split amounts must add up to total');
-        }
-        // store parts temporarily on window so checkout reads them
-        window.__payment_parts = [];
-        if (cash > 0) window.__payment_parts.push({method: 'cash', amount: cash});
-        if (mobile > 0) window.__payment_parts.push({method: 'mobile_money', amount: mobile});
-        if (credit > 0) window.__payment_parts.push({method: 'credit', amount: credit});
-        splitModal.hide();
-        alert('Split payment configured');
-    });
-
-    document.getElementById('checkoutBtn').addEventListener('click', async function(){
-        if (cart.length === 0) return alert('Cart is empty');
-        const discount = parseFloat(document.getElementById('cartDiscount')?.value || 0) || 0;
-        let payment = document.getElementById('paymentMethod').value || 'cash';
-        let customerId = null;
-        if (creditToggle.checked) {
-            payment = 'credit';
-            customerId = document.getElementById('customerSelect').value || null;
-            if (! customerId) return alert('Please select a customer for credit sale');
-        } else {
-            // for cash/mobile payments, allow selecting or adding a customer optionally
-            customerId = document.getElementById('customerSelect').value || null;
-        }
-
-        const payload = {cart, payment, discount};
-        if (customerId) payload.customer_id = parseInt(customerId, 10);
-
-        // include split payment parts if configured
-        if (window.__payment_parts && Array.isArray(window.__payment_parts) && window.__payment_parts.length) {
-            payload.payment_parts = window.__payment_parts;
-        }
-
-        const res = await fetch('/cashier/checkout', {method: 'POST', headers: {'Content-Type':'application/json','X-CSRF-TOKEN': csrfToken}, body: JSON.stringify(payload)});
-        const data = await res.json();
-        if (data.success) {
-            // fetch receipt HTML and show in a modal (pop-out) for printing instead of opening a new tab
-            if (data.sale_id) {
-                try {
-                    const r = await fetch('/cashier/sales/' + data.sale_id, {headers: {'X-Requested-With':'XMLHttpRequest'}});
-                    const html = await r.text();
-                    showReceiptModal(html);
-                } catch(e) {
-                    // fallback to opening a new tab
-                    try { window.open('/cashier/sales/' + data.sale_id, '_blank'); } catch(_) {}
-                }
-            }
-
-            alert('Sale complete, id: ' + data.sale_id);
-            cart = [];
-            document.getElementById('cartDiscount').value = '';
-            renderCart();
-            document.getElementById('searchResults').innerHTML = '';
-            document.getElementById('barcode').value = '';
-
-            // if sale was credit, optionally refresh customer credit info (if a UI exists)
-            if (payment === 'credit' && customerId) {
-                // try to update any credit widgets via a standard endpoint
-                fetch('/cashier/credits/' + customerId).then(r=>r.json()).then(d => {
-                    // update any customer info widgets
-                    try {
-                        if (d.balance !== undefined) document.getElementById('customerBalance').innerText = 'Balance: ' + parseFloat(d.balance||0).toFixed(2);
-                        if (d.credit_limit !== undefined) document.getElementById('customerLimit').innerText = 'Credit limit: ' + (d.credit_limit===null? 'n/a' : parseFloat(d.credit_limit).toFixed(2));
-                        if (Array.isArray(d.credits)) document.getElementById('customerCredits').innerText = 'Open credits: ' + d.credits.length;
-                    } catch(e) {}
-                }).catch(()=>{});
-            }
-        } else {
-            alert('Checkout failed: ' + (data.error || data.message || JSON.stringify(data)));
-        }
-    });
-
-    // When customer is selected, fetch and display balance/limits
-    document.getElementById('customerSelect').addEventListener('change', function(){
-        const id = this.value;
-        const info = document.getElementById('customerInfo');
-        if (!id) { info.style.display='none'; return; }
-        fetch('/cashier/credits/' + id).then(r=>r.json()).then(d => {
-            info.style.display = 'block';
-            document.getElementById('customerBalance').innerText = 'Balance: ' + (d.balance ? parseFloat(d.balance).toFixed(2) : '0.00');
-            document.getElementById('customerLimit').innerText = 'Credit limit: ' + (d.credit_limit===null? 'n/a' : parseFloat(d.credit_limit).toFixed(2));
-            document.getElementById('customerCredits').innerText = 'Open credits: ' + (Array.isArray(d.credits)? d.credits.length : 0);
-        }).catch(()=>{ info.style.display='none'; });
-    });
-
-        // Receipt modal container + helper to show and print
-        const receiptModalHtml = `
-        <div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Receipt</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="receiptModalBody"></div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button id="printReceiptBtn" class="btn btn-primary">Print</button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-
-        // append once
-        if (!document.getElementById('receiptModal')) {
-                const div = document.createElement('div'); div.innerHTML = receiptModalHtml; document.body.appendChild(div);
-        }
-
-        const receiptModalEl = document.getElementById('receiptModal');
-        const bsReceiptModal = new bootstrap.Modal(receiptModalEl);
-
-        function showReceiptModal(html) {
-                document.getElementById('receiptModalBody').innerHTML = html;
-                bsReceiptModal.show();
-                // wire print button to print only the receipt content
-                document.getElementById('printReceiptBtn').onclick = function(){
-                        const content = document.getElementById('receiptModalBody').innerHTML;
-                        const w = window.open('', '_blank');
-                        w.document.open();
-                        w.document.write('<html><head><title>Receipt</title>');
-                        w.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">');
-                        w.document.write('</head><body>');
-                        w.document.write(content);
-                        w.document.write('</body></html>');
-                        w.document.close();
-                        w.focus();
-                        setTimeout(()=>{ try { w.print(); } catch(e){} }, 300);
-                };
-        }
-    </script>
 </body>
 </html>

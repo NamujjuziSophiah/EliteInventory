@@ -15,7 +15,7 @@ class SalesController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Sale::query()->orderBy('created_at', 'desc');
+    $query = Sale::query()->with('customer')->orderBy('created_at', 'desc');
 
         if ($user && $user->role === 'cashier' && Schema::hasColumn('sales', 'user_id')) {
             $query->where('user_id', $user->id);

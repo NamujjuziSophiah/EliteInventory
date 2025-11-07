@@ -7,9 +7,11 @@
             <h3 class="mb-0 fw-bold">📝 Audit Logs</h3>
             <p class="text-muted mb-0">Recent system audit events</p>
         </div>
-        <a href="{{ route('logs.export') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-download"></i> Export Logs
-        </a>
+        @if(Route::has('logs.export'))
+            <a href="{{ route('logs.export') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-download"></i> Export Logs
+            </a>
+        @endif
     </div>
 
     <form method="GET" class="row g-3 align-items-end mb-4">

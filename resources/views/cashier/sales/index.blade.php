@@ -3,7 +3,13 @@
 @section('content')
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>My Sales</h3>
+        <div class="d-flex align-items-center">
+            <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary me-2">Back</a>
+            <h3 class="m-0">My Sales</h3>
+        </div>
+        <div>
+            <a href="{{ route('cashier.dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
+        </div>
     </div>
 
     <table class="table table-sm">
@@ -11,6 +17,7 @@
             <tr>
                 <th>ID</th>
                 <th>Date</th>
+                <th>Customer</th>
                 <th>Items</th>
                 <th>Total</th>
                 <th>Status</th>
@@ -22,6 +29,7 @@
             <tr>
                 <td>{{ $s->id }}</td>
                 <td>{{ $s->created_at }}</td>
+                <td>{{ optional($s->customer)->name ?? 'Walk-in' }}</td>
                 <td style="min-width:220px">
                     @php $items = $s->items ?? collect(); $show = 3; @endphp
                     @if(is_countable($items) && count($items) === 0)

@@ -33,13 +33,12 @@ Route::get('/', function () {
                 return redirect()->route('admin.dashboard');
             case 'manager':
                 return redirect()->route('manager.dashboard');
-                // For cashiers, prefer to show the welcome/landing page by default so
-                // the POS link remains available but the user still sees the landing UI.
-                // This prevents the site from immediately taking all authenticated
-                // users to the cashier dashboard unless an explicit auto-redirect
-                // setting is enabled. If you want cashiers to auto-redirect, set
-                // the `auto_redirect` flag in the settings table.
-                return view('welcome');
+            // For cashiers, prefer to show the welcome/landing page by default so
+            // the POS link remains available but the user still sees the landing UI.
+            // This prevents the site from immediately taking all authenticated
+            // users to the cashier dashboard unless an explicit auto-redirect
+            // setting is enabled. If you want cashiers to auto-redirect, set
+            // the `auto_redirect` flag in the settings table.
             default:
                 return view('welcome');
         }
@@ -47,6 +46,10 @@ Route::get('/', function () {
 
     return view('welcome');
 });
+
+// Serve files from storage disk/public when the storage symlink is not present.
+use App\Http\Controllers\StorageController;
+Route::get('storage/files/{path}', [StorageController::class, 'show'])->where('path', '.*')->name('storage.files.show');
 
 use App\Http\Controllers\RolesController;
 
@@ -95,6 +98,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('settings/force-logout', [\App\Http\Controllers\Admin\SettingsController::class, 'forceLogout'])->name('admin.settings.force_logout');
         // Audit logs
         Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.audit.index');
+    // User-uploaded logs (simple upload/listing)
+    Route::get('user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'index'])->name('admin.user_logs.index');
+    Route::post('user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'store'])->name('admin.user_logs.store');
+    Route::get('user-logs/{id}/download', [\App\Http\Controllers\Admin\UserLogController::class, 'download'])->name('admin.user_logs.download');
         
         // Bulk restore users
         Route::post('users/restore-bulk', [\App\Http\Controllers\Admin\UserManagementController::class, 'restoreBulk'])->name('admin.users.restore_bulk');

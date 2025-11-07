@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use App\Services\DashboardService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerController extends Controller
 {
@@ -19,6 +22,19 @@ class CustomerController extends Controller
         return view('admin.customers.create');
     }
 
+    public function show(Customer $customer)
+    {
+        $svc = new DashboardService();
+        $today = $svc->getTodaysSales(null, $customer->id);
+
+        $customerBalance = null;
+        if (Schema::hasTable('customers') && Schema::hasColumn('customers', 'balance')) {
+            $customerBalance = DB::table('customers')->where('id', $customer->id)->value('balance');
+        }
+
+        return view('admin.customers.show', compact('customer', 'today', 'customerBalance'));
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -26,6 +42,7 @@ class CustomerController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         Customer::create($data);
@@ -44,6 +61,7 @@ class CustomerController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $customer->update($data);

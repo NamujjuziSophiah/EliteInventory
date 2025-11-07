@@ -43,7 +43,13 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
                                 <input type="checkbox" name="ids[]" value="{{ optional($product)->id ?? data_get($product,'id') }}" class="me-2 product-checkbox">
-                                <img src="{{ $product->image_path ? asset('storage/'.$product->image_path) : '/images/avatar-placeholder.png' }}" alt="" width="64" height="64" class="me-2">
+                                @php
+                                    $imgSrc = '/images/avatar-placeholder.png';
+                                    if ($product->image_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($product->image_path)) {
+                                        $imgSrc = route('storage.files.show', ['path' => $product->image_path]);
+                                    }
+                                @endphp
+                                <img src="{{ $imgSrc }}" alt="" width="64" height="64" class="me-2">
                                 <div>
                                     <h6 class="mb-0">{{ $product->name }}</h6>
                                     <small class="text-muted">SKU: {{ $product->sku }}</small>
