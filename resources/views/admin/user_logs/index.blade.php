@@ -33,7 +33,11 @@
                         <div class="small text-muted">Uploaded by: {{ optional($l->user)->name ?? 'Unknown' }} — {{ $l->created_at->diffForHumans() }}</div>
                     </div>
                     <div>
-                        <a href="{{ route('admin.user_logs.download', $l->id) }}" class="btn btn-sm btn-outline-primary">Download</a>
+                        @if(Auth::check() && (Auth::user()->role === 'admin' || Auth::id() === $l->user_id))
+                            <a href="{{ route('admin.user_logs.download', $l->id) }}" class="btn btn-sm btn-outline-primary">Download</a>
+                        @else
+                            <span class="text-muted small">Download (restricted)</span>
+                        @endif
                     </div>
                 </li>
             @empty

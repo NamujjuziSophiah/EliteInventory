@@ -21,6 +21,9 @@ class AdminDashboardController extends Controller
         $productQuantityColumn = $svc->detectStockColumn();
     $recentPurchases = $svc->getRecentPurchasesTable(10);
     $recentSales = $svc->getRecentSales(10);
+        // additional chart datasets
+        $salesByCategory = $svc->getSalesByCategory(6);
+        $revenueByPayment = $svc->getRevenueByPayment();
 
         // compute gross profit and outstanding credits as before (these are admin-specific)
         $grossProfit = 0;
@@ -52,6 +55,10 @@ class AdminDashboardController extends Controller
             'productQuantityColumn' => $productQuantityColumn,
             'recentPurchases' => $recentPurchases,
             'recentSales' => $recentSales
+            , 'salesByCategoryLabels' => $salesByCategory['labels'] ?? [],
+            'salesByCategoryData' => $salesByCategory['data'] ?? [],
+            'revenuePaymentLabels' => $revenueByPayment['labels'] ?? [],
+            'revenuePaymentData' => $revenueByPayment['data'] ?? [],
         ]));
     }
 }

@@ -11,7 +11,12 @@ class UserLogController extends Controller
 {
     public function index()
     {
-        $logs = UserLog::orderBy('created_at', 'desc')->limit(20)->get();
+        $user = auth()->user();
+        if ($user && ($user->role ?? null) === 'admin') {
+            $logs = UserLog::orderBy('created_at', 'desc')->limit(50)->get();
+        } else {
+            $logs = UserLog::where('user_id', auth()->id())->orderBy('created_at', 'desc')->limit(50)->get();
+        }
         return view('admin.user_logs.index', compact('logs'));
     }
 
@@ -39,6 +44,12 @@ class UserLogController extends Controller
     public function download($id)
     {
         $log = UserLog::findOrFail($id);
+        $user = auth()->user();
+        // allow if admin or owner
+        if (! ($user && (($user->role ?? null) === 'admin' || $user->id === $log->user_id))) {
+            abort(403);
+        }
+
         if (! Storage::disk('public')->exists($log->filename)) {
             abort(404);
         }

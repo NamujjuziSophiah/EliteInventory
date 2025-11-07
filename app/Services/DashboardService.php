@@ -121,4 +121,69 @@ class DashboardService
                 return $row;
             });
     }
+
+    /**
+     * Sales grouped by product category (labels/data arrays for charts).
+     */
+    public function getSalesByCategory(int $limit = 6): array
+    {
+        $labels = [];
+        $data = [];
+        if (! Schema::hasTable('sale_items') || ! Schema::hasTable('products') || ! Schema::hasTable('categories')) {
+            return ['labels' => $labels, 'data' => $data];
+        }
+
+        $rows = DB::table('sale_items')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->select(DB::raw('COALESCE(categories.name, "Uncategorized") as category_name'), DB::raw('SUM(sale_items.qty * sale_items.price) as revenue'))
+            ->groupBy('category_name')
+            ->orderByDesc('revenue')
+            ->limit($limit)
+            ->get();
+
+        foreach ($rows as $r) {
+            $labels[] = $r->category_name;
+            $data[] = (float) $r->revenue;
+        }
+
+        return ['labels' => $labels, 'data' => $data];
+    }
+
+    /**
+     * Revenue breakdown by payment method (labels/data arrays for charts).
+     */
+    public function getRevenueByPayment(): array
+    {
+        $labels = [];
+        $data = [];
+        // prefer sale_payments table if available
+        if (Schema::hasTable('sale_payments')) {
+            $rows = DB::table('sale_payments')
+                ->select('method', DB::raw('SUM(amount) as total'))
+                ->groupBy('method')
+                ->orderByDesc('total')
+                ->get();
+            foreach ($rows as $r) {
+                $labels[] = $r->method;
+                $data[] = (float) $r->total;
+            }
+            return ['labels' => $labels, 'data' => $data];
+        }
+
+        // fallback: try payments relationship on sales if present
+        if (Schema::hasTable('payments')) {
+            $rows = DB::table('payments')
+                ->select('method', DB::raw('SUM(amount) as total'))
+                ->groupBy('method')
+                ->orderByDesc('total')
+                ->get();
+            foreach ($rows as $r) {
+                $labels[] = $r->method;
+                $data[] = (float) $r->total;
+            }
+        }
+
+        return ['labels' => $labels, 'data' => $data];
+    }
 }
