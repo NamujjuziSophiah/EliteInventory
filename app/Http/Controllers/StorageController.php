@@ -20,11 +20,52 @@ class StorageController extends Controller
             abort(404);
         }
 
-        $mime = $disk->mimeType($path) ?? 'application/octet-stream';
+        // Default MIME type
+        $mime = 'application/octet-stream';
+        try {
+            // Prefer using the local filesystem path when available (local "public" disk)
+            if (method_exists($disk, 'path')) {
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $localPath = $disk->path($path);
+                if (is_file($localPath)) {
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $detected = $finfo->file($localPath);
+                    if ($detected) {
+                        $mime = $detected;
+                    }
+                }
+            } else {
+                // As a safe fallback, attempt to call mimeType only if the method exists.
+                // Wrap in try/catch because some adapters may throw if they don't support
+                // mime type detection or if the underlying driver can't access the file.
+                try {
+                    /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                    if (method_exists($disk, 'mimeType') || is_callable([$disk, 'mimeType'])) {
+                        $detected = $disk->mimeType($path);
+                        if ($detected) {
+                            $mime = $detected;
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // ignore and continue with default mime
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore and keep default mime
+        }
+
         $stream = $disk->readStream($path);
+        if ($stream === false || ! is_resource($stream)) {
+            abort(500);
+        }
+
         return response()->stream(function() use ($stream) {
             while (! feof($stream)) {
                 echo fread($stream, 8192);
+            }
+            // make sure to close the stream when done
+            if (is_resource($stream)) {
+                fclose($stream);
             }
         }, 200, [
             'Content-Type' => $mime,

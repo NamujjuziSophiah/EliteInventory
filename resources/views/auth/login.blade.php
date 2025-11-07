@@ -7,8 +7,19 @@
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body class="bg-light">
+<nav class="navbar navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url('/') }}">Elites Inventory</a>
+        <div>
+            <a href="{{ route('register') }}" class="btn btn-outline-primary me-2">Register</a>
+            <a href="{{ url('/') }}" class="btn btn-link">Home</a>
+        </div>
+    </div>
+</nav>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-6">
@@ -37,7 +48,10 @@
                         <input name="password" type="password" class="form-control" required>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <button class="btn btn-primary">Login</button>
+                        <div>
+                            <button class="btn btn-primary">Login</button>
+                            <a href="{{ route('password.request') }}" class="btn btn-link ms-2">Forgot your password?</a>
+                        </div>
                         <a href="{{ route('register') }}" class="btn btn-link">Don't have an account? Register</a>
                     </div>
                 </form>
