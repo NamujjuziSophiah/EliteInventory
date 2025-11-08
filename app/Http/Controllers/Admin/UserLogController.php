@@ -46,7 +46,11 @@ class UserLogController extends Controller
         $log = UserLog::findOrFail($id);
         $user = auth()->user();
         // allow if admin or owner
-        if (! ($user && (($user->role ?? null) === 'admin' || $user->id === $log->user_id))) {
+        // Use non-strict comparison for the id check to avoid type-mismatch between
+        // the authenticated user's id (int) and the model's stored user_id (may be
+        // returned as string by some drivers). This keeps owner checks robust in
+        // tests and different DB drivers.
+        if (! ($user && (($user->role ?? null) === 'admin' || $user->id == $log->user_id))) {
             abort(403);
         }
 
@@ -55,17 +59,14 @@ class UserLogController extends Controller
         }
 
         $disk = Storage::disk('public');
-        $stream = $disk->readStream($log->filename);
         $name = $log->title ?? basename($log->filename);
 
-        return response()->streamDownload(function () use ($stream) {
-            while (! feof($stream)) {
-                echo fread($stream, 8192);
-            }
-            if (is_resource($stream)) fclose($stream);
-        }, $name, [
+        // Return file contents directly for simpler handling across drivers and tests
+        $content = $disk->get($log->filename);
+        return response($content, 200, [
             'Content-Type' => $log->mime_type ?? 'application/octet-stream',
             'Content-Length' => $disk->size($log->filename),
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
         ]);
     }
 }

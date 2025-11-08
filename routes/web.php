@@ -98,10 +98,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('settings/force-logout', [\App\Http\Controllers\Admin\SettingsController::class, 'forceLogout'])->name('admin.settings.force_logout');
         // Audit logs
         Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.audit.index');
-    // User-uploaded logs (simple upload/listing)
-    Route::get('user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'index'])->name('admin.user_logs.index');
-    Route::post('user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'store'])->name('admin.user_logs.store');
-    Route::get('user-logs/{id}/download', [\App\Http\Controllers\Admin\UserLogController::class, 'download'])->name('admin.user_logs.download');
+    // User-uploaded logs (simple upload/listing) — routing changed to allow owners access
+    // (actual route definitions moved below to be accessible by authenticated owners as well)
         
         // Bulk restore users
         Route::post('users/restore-bulk', [\App\Http\Controllers\Admin\UserManagementController::class, 'restoreBulk'])->name('admin.users.restore_bulk');
@@ -209,6 +207,15 @@ Route::middleware(['auth','ensure.role:admin|manager'])->group(function () {
     // Controller will gate view logic based on role (admins see full reports, managers limited view).
     Route::get('reports/purchases', [\App\Http\Controllers\Admin\ReportsController::class, 'purchases'])
         ->name('reports.purchases');
+});
+
+// User-uploaded logs: allow authenticated users to upload and view their own logs;
+// admins will see all logs. Routes are prefixed with `admin/` path to keep existing
+// route names and links (e.g. route('admin.user_logs.index')).
+Route::middleware(['auth'])->group(function () {
+    Route::get('admin/user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'index'])->name('admin.user_logs.index');
+    Route::post('admin/user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'store'])->name('admin.user_logs.store');
+    Route::get('admin/user-logs/{id}/download', [\App\Http\Controllers\Admin\UserLogController::class, 'download'])->name('admin.user_logs.download');
 });
 
 // Lightweight diagnostic route to confirm middleware aliases resolve correctly.
