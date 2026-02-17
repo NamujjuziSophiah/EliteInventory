@@ -110,76 +110,94 @@
     </style>
 
     <div id="managerMainContent">
-        <div id="section-overview" class="manager-section">
-            <div class="row g-3">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="mb-0">Overview</h4>
-                        <small class="text-muted">Last updated: {{ now()->diffForHumans() }}</small>
-                    </div>
+        <div class="container-fluid">
+            <div class="row g-3 mb-3">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Manager Dashboard</h4>
+                    <small class="text-muted">Last updated: {{ now()->diffForHumans() }}</small>
                 </div>
+            </div>
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="card text-white p-3 h-100 bg-gradient-blue kpi-card">
+            <!-- KPI Row -->
+            <div class="row g-3">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card p-3 h-100">
                         <div class="d-flex align-items-center">
-                            <div class="me-3 display-6"><i class="fa fa-box"></i></div>
+                            <div class="me-3 display-6 text-primary"><i class="fa fa-box"></i></div>
                             <div>
-                                <div class="small">Total products</div>
+                                <div class="small-muted">Total products</div>
                                 <div class="h3 mb-0">{{ $totalProducts ?? 0 }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="card text-white p-3 h-100 bg-gradient-green kpi-card">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card p-3 h-100">
                         <div class="d-flex align-items-center">
-                            <div class="me-3 display-6"><i class="fa fa-truck"></i></div>
+                            <div class="me-3 display-6 text-warning"><i class="fa fa-exclamation-triangle"></i></div>
                             <div>
-                                <div class="small">Recent restocks</div>
-                                <div class="h3 mb-0">{{ count($recentRestocks ?? []) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="card text-white p-3 h-100 bg-gradient-orange kpi-card">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 display-6"><i class="fa fa-exclamation-triangle"></i></div>
-                            <div>
-                                <div class="small">Low stock</div>
+                                <div class="small-muted">Low stock</div>
                                 <div class="h3 mb-0">{{ count($lowStock ?? []) }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="card text-white p-3 h-100 bg-gradient-sky kpi-card">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card p-3 h-100">
                         <div class="d-flex align-items-center">
-                            <div class="me-3 display-6"><i class="fa fa-handshake"></i></div>
+                            <div class="me-3 display-6 text-success"><i class="fa fa-truck"></i></div>
                             <div>
-                                <div class="small">Top suppliers</div>
+                                <div class="small-muted">Recent restocks</div>
+                                <div class="h3 mb-0">{{ count($recentRestocks ?? []) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card p-3 h-100">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 display-6 text-info"><i class="fa fa-handshake"></i></div>
+                            <div>
+                                <div class="small-muted">Top suppliers</div>
                                 <div class="h3 mb-0">{{ count($supplierSpend ?? []) }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="section-lowstock" class="manager-section">
-            <div class="row mt-4">
+            <!-- Main grid: chart + side column -->
+            <div class="row g-3 mt-3">
                 <div class="col-lg-8">
-                    <div class="card p-3">
-                        <h5 class="mb-3">Sales (last 7 days)</h5>
-                        <canvas id="salesChart" height="120" data-labels='@json($salesTrendLabels ?? [])' data-values='@json($salesTrendData ?? [])'></canvas>
+                    <div class="card p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">Sales (last 7 days)</h5>
+                            <div class="small-muted">Trend</div>
+                        </div>
+                        <div style="height:320px;">
+                            <canvas id="salesChart" style="width:100%;height:100%;" data-labels='@json($salesTrendLabels ?? [])' data-values='@json($salesTrendData ?? [])'></canvas>
+                        </div>
+                        <hr>
+                        <h6 class="mb-2">Recent Purchases</h6>
+                        @include('partials.transactions-table', ['rows' => $recentPurchases])
                     </div>
                 </div>
+
                 <div class="col-lg-4">
-                    <div class="card p-3">
-                        <h5 class="mb-3">Low stock items</h5>
+                    <div class="card p-3 mb-3">
+                        <h6 class="mb-2">Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ route('manager.products.create') }}" class="btn btn-outline-primary">Add product</a>
+                            <a href="{{ route('manager.purchases.create') }}" class="btn btn-primary">Create Purchase (Restock)</a>
+                            <a href="{{ route('manager.suppliers.index') }}" class="btn btn-outline-secondary">Manage Suppliers</a>
+                        </div>
+                    </div>
+
+                    <div class="card p-3 mb-3">
+                        <h6 class="mb-2">Low stock items</h6>
                         @if(count($lowStock) === 0)
                             <p class="text-muted">No low stock items.</p>
                         @else
@@ -190,38 +208,25 @@
                                             <div class="fw-bold">{{ data_get($p, 'name', data_get($p, 'product_name', 'n/a')) }}</div>
                                             <small class="text-muted">{{ data_get($p, $stockColumn, 'n/a') }} in stock</small>
                                         </div>
-                                        <a href="{{ route('manager.purchases.create') }}" class="btn btn-sm btn-primary">Restock</a>
+                                        <a href="{{ route('manager.purchases.create') }}?product_id={{ data_get($p, 'id') }}" class="btn btn-sm btn-primary">Restock</a>
                                     </li>
                                 @endforeach
                             </ul>
                         @endif
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div id="section-purchases" class="manager-section">
-            <div class="row mt-4">
-                <div class="col-lg-6">
                     <div class="card p-3">
-                        <h5 class="mb-3">Recent Purchases</h5>
-                        @include('partials.transactions-table', ['rows' => $recentPurchases])
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="card p-3">
-                        <h5 class="mb-3">Top Supplier Spend</h5>
+                        <h6 class="mb-2">Top Suppliers</h6>
                         @if(($supplierSpend ?? collect())->count() === 0)
                             <p class="text-muted">No supplier spend yet.</p>
                         @else
                             <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead><tr><th>Supplier</th><th>Total</th></tr></thead>
+                                <table class="table table-sm mb-0">
                                     <tbody>
                                         @foreach($supplierSpend as $row)
                                             <tr>
                                                 <td>{{ $row->supplier_name ?? 'Unknown' }}</td>
-                                                <td>{{ format_currency($row->total_spend ?? 0) }}</td>
+                                                <td class="text-end">{{ format_currency($row->total_spend ?? 0) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -232,11 +237,7 @@
                 </div>
             </div>
         </div>
-
-        <div class="manager-placeholder" id="managerPlaceholder">Select a section from the menu</div>
-
-
-</div>
+    </div>
 
 @push('scripts')
 <script>
