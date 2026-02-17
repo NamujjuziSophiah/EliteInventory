@@ -20,7 +20,6 @@
                 <a href="{{ route('reports.purchases') }}" class="list-group-item list-group-item-action">Purchase Reports</a>
             </div>
         </div>
-    </main>
 
     <!-- Static sidebar for wider screens -->
     <aside class="d-none d-md-block dashboard-sidebar p-3">
@@ -59,8 +58,6 @@
     </div>
 
     {{-- manager JS loaded externally for maintainability --}}
-        </div>
-    </div>
 
     <!-- Main content area that will be updated when manager menu items are clicked -->
     <style>
