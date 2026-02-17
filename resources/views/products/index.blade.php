@@ -49,7 +49,7 @@
                                         $imgSrc = route('storage.files.show', ['path' => $product->image_path]);
                                     }
                                 @endphp
-                                <img src="{{ $imgSrc }}" alt="" width="64" height="64" class="me-2">
+                                <img src="{{ $imgSrc }}" alt="" width="64" height="64" class="me-2" onerror="this.onerror=null;this.src='/images/avatar-placeholder.png'">
                                 <div>
                                     <h6 class="mb-0">{{ $product->name }}</h6>
                                     <small class="text-muted">SKU: {{ $product->sku }}</small>

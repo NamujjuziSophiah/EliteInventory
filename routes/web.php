@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 // Default root: show landing welcome page or auto-redirect authenticated users if enabled in settings
 use Illuminate\Support\Facades\Schema;
@@ -50,6 +54,12 @@ Route::get('/', function () {
 // Serve files from storage disk/public when the storage symlink is not present.
 use App\Http\Controllers\StorageController;
 Route::get('storage/files/{path}', [StorageController::class, 'show'])->where('path', '.*')->name('storage.files.show');
+// Also accept the legacy /storage/* path and forward to the controller when the
+// public/storage symlink is not available. If the symlink exists the static
+// file will be served by the webserver and this route won't be hit.
+Route::get('storage/{path}', function ($path) {
+    return redirect()->route('storage.files.show', ['path' => $path]);
+})->where('path', '.*');
 
 use App\Http\Controllers\RolesController;
 
@@ -67,12 +77,50 @@ use App\Http\Controllers\Auth\LoginController;
 Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-// Convenience GET logout route for environments where a simple link is preferred
-// (keeps existing POST logout intact and is protected by middleware in the
-// controller). Note: GET logout is less secure than POST but improves UX for
-// some customers — it's optional and can be removed if you prefer strict
-// POST-only logout.
-Route::get('/logout', [LoginController::class, 'logout']);
+// Note: A GET logout route was previously provided for convenience but POST
+// logout is the recommended secure method. The GET logout route has been
+// removed to avoid duplicate route surfaces. Use the POST route named
+// 'logout' instead.
+
+// Password reset routes (lightweight closures implementing the common flow)
+// Provides the named routes: password.request, password.email, password.reset, password.update
+Route::get('password/reset', function () {
+    return view('auth.passwords.email');
+})->name('password.request');
+
+Route::post('password/email', function (Request $request) {
+    $request->validate(['email' => 'required|email']);
+    $status = Password::sendResetLink($request->only('email'));
+
+    return $status == Password::RESET_LINK_SENT
+        ? back()->with('status', __($status))
+        : back()->withErrors(['email' => __($status)]);
+})->name('password.email');
+
+Route::get('password/reset/{token}', function ($token) {
+    return view('auth.passwords.reset', ['token' => $token]);
+})->name('password.reset');
+
+Route::post('password/reset', function (Request $request) {
+    $request->validate([
+        'token' => 'required',
+        'email' => 'required|email',
+        'password' => 'required|min:8|confirmed',
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function (\App\Models\User $user, $password) {
+            $user->password = Hash::make($password);
+            $user->setRememberToken(Str::random(60));
+            $user->save();
+        }
+    );
+
+    return $status == Password::PASSWORD_RESET
+        ? redirect()->route('login')->with('status', __($status))
+        : back()->withErrors(['email' => [__($status)]]);
+})->name('password.update');
 
 // Role-protected dashboard routes
 use App\Http\Controllers\POSController;
@@ -82,6 +130,11 @@ Route::middleware(['auth'])->group(function () {
     // Admin
     Route::middleware(['ensure.role:admin'])->prefix('admin')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Allow admins to open the manager-style dashboard for inspection without
+    // changing manager middleware. This mounts the manager dashboard controller
+    // under an admin-only URL so admins can preview the manager UI.
+    Route::get('manager', [\App\Http\Controllers\Manager\DashboardController::class, 'index'])->name('admin.manager.dashboard');
 
     // Users management (list, soft-delete)
     Route::get('users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users.index');
@@ -106,6 +159,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Reports
         Route::get('reports', [\App\Http\Controllers\Admin\ReportsController::class, 'index'])->name('admin.reports.index');
+    Route::get('reports/series', [\App\Http\Controllers\Admin\ReportsController::class, 'series'])->name('admin.reports.series');
         Route::get('reports/export', [\App\Http\Controllers\Admin\ReportsController::class, 'export'])->name('admin.reports.export');
             // Barcode image
                 Route::get('products/{product}/barcode.png', [\App\Http\Controllers\Admin\BarcodeController::class, 'image'])->name('admin.products.barcode');

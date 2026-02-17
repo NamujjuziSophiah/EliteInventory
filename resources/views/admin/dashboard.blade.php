@@ -28,6 +28,12 @@
                     <a class="nav-link text-danger" href="#" onclick="event.preventDefault(); window.history.back();">Back</a>
                 </nav>
 
+                <!-- Logout (visible inside admin sidebar for convenience) -->
+                <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" class="mt-3">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Logout</button>
+                </form>
+
                 <div class="mt-4 small text-muted">Quick actions</div>
                 <div class="d-flex flex-column gap-2 mt-2">
                     <a href="{{ route('admin.reports.export', ['date_from' => now()->subDays(30)->toDateString(), 'date_to' => now()->toDateString()]) }}" class="btn btn-sm btn-outline-success">Export P&L (30d)</a>
@@ -57,6 +63,12 @@
                 <a class="nav-link" href="{{ route('admin.settings.edit') }}">Settings</a>
                 <a class="nav-link text-danger" href="#" onclick="event.preventDefault(); window.history.back();">Back</a>
             </nav>
+
+            <!-- Logout for desktop sidebar -->
+            <form id="admin-logout-form-desktop" action="{{ route('logout') }}" method="POST" class="mt-3">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Logout</button>
+            </form>
 
             <div class="mt-4 small text-muted">Quick actions</div>
             <div class="d-flex flex-column gap-2 mt-2">
@@ -210,6 +222,25 @@
                                     <h6 class="mb-1">Logs</h6>
                                     <div class="display-6">Upload</div>
                                     <div class="small">Upload or view custom logs</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('admin.manager.dashboard') ? route('admin.manager.dashboard') : (Route::has('manager.dashboard') ? route('manager.dashboard') : '#') }}" class="text-decoration-none">
+                                <div class="card p-3 h-100 bg-secondary text-white">
+                                    <h6 class="mb-1">Manager</h6>
+                                    <div class="display-6">Go</div>
+                                    <div class="small">Open Manager Dashboard</div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <a href="{{ Route::has('cashier.dashboard') ? route('cashier.dashboard') : '#' }}" class="text-decoration-none">
+                                <div class="card p-3 h-100 bg-dark text-white">
+                                    <h6 class="mb-1">Cashier</h6>
+                                    <div class="display-6">Go</div>
+                                    <div class="small">Open Cashier Dashboard</div>
                                 </div>
                             </a>
                         </div>

@@ -26,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        Gate::define('export-reports', function ($user) {
+        Gate::define('export-reports', function (\App\Models\User $user) {
             return ($user->role ?? null) === 'admin';
         });
 

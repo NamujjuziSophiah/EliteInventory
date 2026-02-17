@@ -27,14 +27,14 @@
 
         <div class="row g-3">
             <div class="col-md-3">
-                <div class="card card-modern p-3 h-100">
-                    <div class="small-muted">Today's Sales</div>
+                <div class="card text-white p-3 h-100 bg-gradient-blue">
+                    <div class="small">Today's Sales</div>
                     <div class="h3 mb-0">{{ format_currency($salesTotal ?? 0) }}</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-modern p-3 h-100">
-                    <div class="small-muted">Transactions</div>
+                <div class="card text-white p-3 h-100 bg-gradient-orange">
+                    <div class="small">Transactions</div>
                     <div class="h3 mb-0">{{ $salesCount ?? 0 }}</div>
                 </div>
             </div>

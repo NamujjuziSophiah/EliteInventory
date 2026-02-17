@@ -15,7 +15,124 @@ class ReportsController extends Controller
 {
     public function index()
     {
-        return view('admin.reports.index');
+        // prepare a simple profit/loss time series for the reports page
+        // allow explicit date_from/date_to filters (ISO date strings); if not provided, fall back to last N days
+        $request = request();
+        $labels = [];
+        $profitSeries = [];
+
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            // parse provided dates safely
+            try {
+                $from = $request->filled('date_from') ? 
+                    \Carbon\Carbon::parse($request->query('date_from'))->startOfDay() : now()->subDays(29)->startOfDay();
+                $to = $request->filled('date_to') ? 
+                    \Carbon\Carbon::parse($request->query('date_to'))->endOfDay() : now()->endOfDay();
+            } catch (\Exception $e) {
+                // fallback to 30 days on parse error
+                $from = now()->subDays(29)->startOfDay();
+                $to = now()->endOfDay();
+            }
+        } else {
+            $days = (int) $request->query('days', 30);
+            $days = $days > 0 && $days <= 365 ? $days : 30;
+            $to = now()->endOfDay();
+            $from = now()->subDays($days - 1)->startOfDay();
+        }
+
+        // limit range length to 365 days to prevent expensive queries
+        $maxRangeDays = 365;
+        $rangeDays = (int) $from->diffInDays($to) + 1;
+        if ($rangeDays > $maxRangeDays) {
+            $from = $to->copy()->subDays($maxRangeDays - 1)->startOfDay();
+            $rangeDays = $maxRangeDays;
+        }
+
+        for ($i = 0; $i < $rangeDays; $i++) {
+            $dayStart = $from->copy()->addDays($i)->startOfDay();
+            $dayEnd = $dayStart->copy()->endOfDay();
+
+            $labels[] = $dayStart->toDateString();
+
+            $totalSales = (float) DB::table('sales')
+                ->whereBetween('created_at', [$dayStart, $dayEnd])
+                ->sum('total');
+
+            $totalCost = (float) DB::table('sale_items as si')
+                ->leftJoin('products as p', 'p.id', 'si.product_id')
+                ->leftJoin('sales as s', 's.id', 'si.sale_id')
+                ->whereBetween('s.created_at', [$dayStart, $dayEnd])
+                ->selectRaw('COALESCE(SUM(si.qty * COALESCE(si.cost_per_unit, p.cost_price, 0)),0) as total_cost')
+                ->value('total_cost');
+
+            $profit = $totalSales - $totalCost;
+            $profitSeries[] = round($profit, 2);
+        }
+
+        return view('admin.reports.index', ['labels' => $labels, 'profitSeries' => $profitSeries]);
+    }
+
+    /**
+     * Return a grouped time-series (labels + values) for profit per day as JSON.
+     * This uses a single grouped query for performance and fills missing days with zero.
+     */
+    public function series(Request $request)
+    {
+        // parse date range with same defaults/guards as index()
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            try {
+                $from = $request->filled('date_from') ? \Carbon\Carbon::parse($request->query('date_from'))->startOfDay() : now()->subDays(29)->startOfDay();
+                $to = $request->filled('date_to') ? \Carbon\Carbon::parse($request->query('date_to'))->endOfDay() : now()->endOfDay();
+            } catch (\Exception $e) {
+                $from = now()->subDays(29)->startOfDay();
+                $to = now()->endOfDay();
+            }
+        } else {
+            $days = (int) $request->query('days', 30);
+            $days = $days > 0 && $days <= 365 ? $days : 30;
+            $to = now()->endOfDay();
+            $from = now()->subDays($days - 1)->startOfDay();
+        }
+
+        // enforce max range
+        $maxRangeDays = 365;
+        $rangeDays = (int) $from->diffInDays($to) + 1;
+        if ($rangeDays > $maxRangeDays) {
+            $from = $to->copy()->subDays($maxRangeDays - 1)->startOfDay();
+            $rangeDays = $maxRangeDays;
+        }
+
+        // Guard when tables missing
+        if (! Schema::hasTable('sales')) {
+            return response()->json(['labels' => [], 'values' => []]);
+        }
+
+        // One grouped query: group by date(s.created_at)
+        $rows = DB::table('sales as s')
+            ->leftJoin('sale_items as si', 'si.sale_id', 's.id')
+            ->leftJoin('products as p', 'p.id', 'si.product_id')
+            ->whereBetween('s.created_at', [$from->toDateTimeString(), $to->toDateTimeString()])
+            ->selectRaw("DATE(s.created_at) as day, COALESCE(SUM(s.total),0) as total_sales, COALESCE(SUM(si.qty * COALESCE(si.cost_per_unit, p.cost_price, 0)),0) as total_cost")
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get();
+
+        // build associative map day => profit
+        $map = [];
+        foreach ($rows as $r) {
+            $map[$r->day] = round(((float) $r->total_sales - (float) $r->total_cost), 2);
+        }
+
+        // produce full labels and values arrays filling missing days with 0
+        $labels = [];
+        $values = [];
+        for ($i = 0; $i < $rangeDays; $i++) {
+            $day = $from->copy()->addDays($i)->toDateString();
+            $labels[] = $day;
+            $values[] = $map[$day] ?? 0.0;
+        }
+
+        return response()->json(['labels' => $labels, 'values' => $values]);
     }
 
     // Export profit & loss CSV for a date range (inclusive)

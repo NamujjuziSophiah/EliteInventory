@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'ElintesInventoryManagement') }}</title>
+    <title>{{ config('app.name', 'Elite Retail Management') }}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -28,24 +28,31 @@
     @stack('styles')
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">{{ config('app.name', 'Elites Retail InventoryManagement System') }}</a>
-            <button class="btn btn-sm btn-outline-secondary ms-2 d-md-none dashboard-toggle-btn" id="sidebarToggle" title="Toggle sidebar"><i class="fa fa-bars"></i></button>
+            <a class="navbar-brand d-flex align-items-center text-white" href="{{ url('/') }}">
+                {{-- small inline SVG logo to avoid external image issues --}}
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2">
+                    <rect width="24" height="24" rx="4" fill="#fff" opacity="0.06"></rect>
+                    <path d="M4 12h16M12 4v16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="fw-bold">Elite Retail Management</span>
+            </a>
+            <button class="btn btn-sm btn-outline-light ms-2 d-md-none dashboard-toggle-btn" id="sidebarToggle" title="Toggle sidebar"><i class="fa fa-bars"></i></button>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsMain" aria-controls="navbarsMain" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarsMain">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     @guest
-                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ route('login') }}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ route('register') }}">Register</a></li>
                     @else
                         @if(Auth::check() && (Auth::user()->role ?? null) === 'admin')
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
+                                <a class="nav-link dropdown-toggle text-white" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Dashboard</a></li>
                                     <li><a class="dropdown-item" href="{{ route('admin.products.index') }}">Manage Products</a></li>
@@ -59,11 +66,17 @@
                             </li>
                         @endif
 
+                        <li class="nav-item me-2 d-none d-md-block">
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button class="btn btn-sm btn-outline-light" type="submit" title="Logout"><i class="fa fa-sign-out-alt"></i> Logout</button>
+                            </form>
+                        </li>
+
                         <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ Auth::user()->name }}</a>
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ Auth::user()->name }}</a>
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none">@csrf</form>
                             </div>
                         </li>
                     @endguest
@@ -93,11 +106,13 @@
     </main>
 
     <footer class="bg-light py-2 border-top">
-        <div class="container text-center small text-muted">&copy; ElitesDevelopersGroup {{ date('Y') }} — ElintesInventoryManagement</div>
+        <div class="container text-center small text-muted">&copy; ElitesDevelopersGroup {{ date('Y') }} — Elite Retail Management</div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/formatters.js"></script>
+    {{-- Chart.js (used by reports and dashboards) --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
     <script>
         (function(){
             const btn = document.getElementById('sidebarToggle');

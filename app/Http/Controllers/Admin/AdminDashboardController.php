@@ -25,10 +25,15 @@ class AdminDashboardController extends Controller
         $salesByCategory = $svc->getSalesByCategory(6);
         $revenueByPayment = $svc->getRevenueByPayment();
 
-        // compute gross profit and outstanding credits as before (these are admin-specific)
-        $grossProfit = 0;
+        // compute gross profit using explicit formula: sales revenue - cost of goods sold
+        // This computes revenue and COGS from line items to keep numerator/denominator aligned.
+        $grossProfit = 0.0;
+        $lineItemRevenue = 0.0;
+        $lineItemCogs = 0.0;
         if (Schema::hasTable('sale_items')) {
-            $grossProfit = (float) DB::table('sale_items')->selectRaw('COALESCE(SUM(qty * (price - COALESCE(cost_per_unit,0))),0) as gp')->value('gp');
+            $lineItemRevenue = (float) DB::table('sale_items')->selectRaw('COALESCE(SUM(qty * price),0) as revenue')->value('revenue');
+            $lineItemCogs = (float) DB::table('sale_items')->selectRaw('COALESCE(SUM(qty * COALESCE(cost_per_unit,0)),0) as cogs')->value('cogs');
+            $grossProfit = $lineItemRevenue - $lineItemCogs;
         }
 
         $outstandingCredits = 0;
@@ -38,9 +43,15 @@ class AdminDashboardController extends Controller
             $outstandingCredits = (float) DB::table('customer_credits')->where('paid', false)->sum('amount');
         }
 
-        $grossMarginPercent = 0;
-        if (($totals['totalSalesValue'] ?? 0) > 0) {
-            $grossMarginPercent = ($grossProfit / ($totals['totalSalesValue'] ?? 1)) * 100;
+        // Compute gross margin percent = (sales revenue - COGS) / sales revenue * 100
+        $grossMarginPercent = 0.0;
+        $denominator = $lineItemRevenue;
+        if ($denominator <= 0) {
+            // fallback to stored sales.total aggregate when line-item revenue isn't available
+            $denominator = (float) ($totals['totalSalesValue'] ?? 0);
+        }
+        if ($denominator > 0) {
+            $grossMarginPercent = ($grossProfit / $denominator) * 100;
         }
 
         return view('admin.dashboard', array_merge($totals, [

@@ -16,6 +16,7 @@ class UserLogAclTest extends TestCase
     {
         Storage::fake('public');
 
+        /** @var \App\Models\User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
         $u1 = User::factory()->create(['role' => 'manager']);
         $u2 = User::factory()->create(['role' => 'cashier']);
@@ -46,6 +47,7 @@ class UserLogAclTest extends TestCase
     {
         Storage::fake('public');
 
+        /** @var \App\Models\User $u1 */
         $u1 = User::factory()->create(['role' => 'manager']);
         $u2 = User::factory()->create(['role' => 'cashier']);
 

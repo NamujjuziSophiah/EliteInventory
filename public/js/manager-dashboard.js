@@ -68,13 +68,26 @@
 
         try { if (canvas._chartInstance && typeof canvas._chartInstance.destroy === 'function') canvas._chartInstance.destroy(); } catch (e) { }
 
+        // avoid re-initialising identical charts (prevents duplicate/looping renders)
+        try {
+            const payload = JSON.stringify({ labels, values });
+            if (canvas.dataset.chartInitialised === '1' && canvas.dataset.lastPayload === payload) {
+                return; // already initialised with same data
+            }
+        } catch (e) { }
+
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         canvas._chartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels, datasets: [{ label: 'Sales', data: values, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', fill: true, tension: 0.2 }] },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 0 },
+                plugins: { legend: { display: false } }
+            }
         });
 
         try { canvas.dataset.lastPayload = JSON.stringify({ labels, values }); } catch (e) { }

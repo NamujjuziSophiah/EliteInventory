@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+/** @var \App\Models\Customer $customer */
+@endphp
+
 @section('content')
 <div class="container py-4">
     <a href="{{ route('admin.customers.index') }}" class="btn btn-secondary mb-3">Back to Customers</a>

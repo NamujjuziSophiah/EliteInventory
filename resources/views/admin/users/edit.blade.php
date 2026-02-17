@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+/** @var \App\Models\User $user */
+@endphp
+
 @section('content')
 <div class="container py-4">
     <h1>Edit User</h1>

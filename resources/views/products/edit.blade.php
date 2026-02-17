@@ -102,14 +102,14 @@
         <div class="mb-3">
             <label class="form-label">Image</label>
             <input name="image" type="file" class="form-control">
-            @if($product->image_path)
+                @if($product->image_path)
                 @php
                     $imgSrc = '/images/avatar-placeholder.png';
                     if (\Illuminate\Support\Facades\Storage::disk('public')->exists($product->image_path)) {
                         $imgSrc = route('storage.files.show', ['path' => $product->image_path]);
                     }
                 @endphp
-                <div class="mt-2"><img src="{{ $imgSrc }}" width="120"></div>
+                <div class="mt-2"><img src="{{ $imgSrc }}" width="120" onerror="this.onerror=null;this.src='/images/avatar-placeholder.png'"></div>
             @endif
         </div>
         <div class="d-flex">

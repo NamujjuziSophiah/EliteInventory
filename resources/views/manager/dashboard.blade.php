@@ -120,11 +120,11 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6">
-                    <div class="card shadow-sm rounded-lg p-3 kpi-card">
+                    <div class="card text-white p-3 h-100 bg-gradient-blue kpi-card">
                         <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-primary"><i class="fa fa-box"></i></div>
+                            <div class="me-3 display-6"><i class="fa fa-box"></i></div>
                             <div>
-                                <div class="small text-muted">Total products</div>
+                                <div class="small">Total products</div>
                                 <div class="h3 mb-0">{{ $totalProducts ?? 0 }}</div>
                             </div>
                         </div>
@@ -132,23 +132,11 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6">
-                    <div class="card shadow-sm rounded-lg p-3 kpi-card">
+                    <div class="card text-white p-3 h-100 bg-gradient-green kpi-card">
                         <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-warning"><i class="fa fa-exclamation-triangle"></i></div>
+                            <div class="me-3 display-6"><i class="fa fa-truck"></i></div>
                             <div>
-                                <div class="small text-muted">Low stock</div>
-                                <div class="h3 mb-0">{{ count($lowStock ?? []) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="card shadow-sm rounded-lg p-3 kpi-card">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-success"><i class="fa fa-truck"></i></div>
-                            <div>
-                                <div class="small text-muted">Recent restocks</div>
+                                <div class="small">Recent restocks</div>
                                 <div class="h3 mb-0">{{ count($recentRestocks ?? []) }}</div>
                             </div>
                         </div>
@@ -156,11 +144,23 @@
                 </div>
 
                 <div class="col-lg-3 col-md-6">
-                    <div class="card shadow-sm rounded-lg p-3 kpi-card">
+                    <div class="card text-white p-3 h-100 bg-gradient-orange kpi-card">
                         <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-info"><i class="fa fa-handshake"></i></div>
+                            <div class="me-3 display-6"><i class="fa fa-exclamation-triangle"></i></div>
                             <div>
-                                <div class="small text-muted">Top suppliers</div>
+                                <div class="small">Low stock</div>
+                                <div class="h3 mb-0">{{ count($lowStock ?? []) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="card text-white p-3 h-100 bg-gradient-sky kpi-card">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 display-6"><i class="fa fa-handshake"></i></div>
+                            <div>
+                                <div class="small">Top suppliers</div>
                                 <div class="h3 mb-0">{{ count($supplierSpend ?? []) }}</div>
                             </div>
                         </div>
@@ -190,7 +190,11 @@
                                             <div class="fw-bold">{{ data_get($p, 'name', data_get($p, 'product_name', 'n/a')) }}</div>
                                             <small class="text-muted">{{ data_get($p, $stockColumn, 'n/a') }} in stock</small>
                                         </div>
-                                        <a href="{{ route('manager.purchases.create') }}" class="btn btn-sm btn-primary">Restock</a>
+                                        @if(auth()->check() && auth()->user()->isManager())
+                                            <button class="btn btn-sm btn-secondary" disabled>Restock (view-only)</button>
+                                        @else
+                                            <a href="{{ route('manager.purchases.create') }}" class="btn btn-sm btn-primary">Restock</a>
+                                        @endif
                                     </li>
                                 @endforeach
                             </ul>
