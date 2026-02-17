@@ -20,6 +20,8 @@
                 <a href="{{ route('reports.purchases') }}" class="list-group-item list-group-item-action">Purchase Reports</a>
             </div>
         </div>
+        </div>
+    </div>
 
     <!-- Static sidebar for wider screens -->
     <aside class="d-none d-md-block dashboard-sidebar p-3">
@@ -244,8 +246,9 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div> <!-- .container-fluid -->
+    </main>
+</div> <!-- .dashboard-app -->
 
 @push('scripts')
 <script>
