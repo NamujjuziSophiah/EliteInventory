@@ -137,6 +137,46 @@
                 </div>
             </div>
 
+            <!-- Clickable quick-cards (moved up so they appear beside the sidebar) -->
+            <div class="row g-3 mt-3">
+                <div class="col-6 col-md-3">
+                    <a href="{{ Route::has('manager.sales.index') ? route('manager.sales.index') : '#' }}" class="text-decoration-none">
+                        <div class="card bg-primary text-white p-3 h-100">
+                            <h6 class="mb-1">Sales</h6>
+                            <div class="display-6">{{ $totalSales ?? 0 }}</div>
+                            <div class="small">View sales</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{{ Route::has('manager.purchases.index') ? route('manager.purchases.index') : '#' }}" class="text-decoration-none">
+                        <div class="card bg-success text-white p-3 h-100">
+                            <h6 class="mb-1">Purchases</h6>
+                            <div class="display-6">{{ $totalPurchases ?? 0 }}</div>
+                            <div class="small">Manage purchases</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{{ Route::has('manager.products.index') ? route('manager.products.index') : '#' }}" class="text-decoration-none">
+                        <div class="card bg-info text-white p-3 h-100">
+                            <h6 class="mb-1">Products</h6>
+                            <div class="display-6">{{ $totalProducts ?? 0 }}</div>
+                            <div class="small">Manage products</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{{ Route::has('manager.suppliers.index') ? route('manager.suppliers.index') : '#' }}" class="text-decoration-none">
+                        <div class="card bg-warning text-dark p-3 h-100">
+                            <h6 class="mb-1">Suppliers</h6>
+                            <div class="display-6">{{ $totalSuppliers ?? 0 }}</div>
+                            <div class="small">Manage suppliers</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
             <!-- Main grid: chart + side column -->
             <div class="row g-3 mt-3">
                 <div class="col-lg-8">
