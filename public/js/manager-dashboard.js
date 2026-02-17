@@ -70,7 +70,13 @@
         let payload = null;
         try { payload = JSON.stringify({ labels, values }); } catch (e) { payload = null; }
         try {
+            // window-level guard: survives DOM replacements
+            if (window._managerSalesChartInitialised && window._managerSalesChartPayload === payload) {
+                console.debug('manager-dashboard: chart init skipped (window-level guard)');
+                return;
+            }
             if (payload && canvas.dataset.chartInitialised === '1' && canvas.dataset.lastPayload === payload) {
+                console.debug('manager-dashboard: chart init skipped (canvas dataset)');
                 return; // already initialised with same data
             }
         } catch (e) { }
@@ -93,6 +99,8 @@
 
         try { canvas.dataset.lastPayload = payload || JSON.stringify({ labels, values }); } catch (e) { }
         canvas.dataset.chartInitialised = '1';
+        try { window._managerSalesChartInitialised = true; window._managerSalesChartPayload = payload; } catch (e) { }
+        try { console.info('manager-dashboard: sales chart initialised', { labelsCount: labels.length, valuesCount: values.length, time: new Date().toISOString() }); } catch (e) { }
     }
 
     function initialiseDrawerHandlers() {
