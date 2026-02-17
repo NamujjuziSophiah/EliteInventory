@@ -66,15 +66,16 @@
             values = Array.isArray(parsed) ? parsed.map(v => { const n = Number(v); return Number.isFinite(n) ? n : 0; }) : [];
         } catch (_) { values = []; }
 
-        try { if (canvas._chartInstance && typeof canvas._chartInstance.destroy === 'function') canvas._chartInstance.destroy(); } catch (e) { }
-
         // avoid re-initialising identical charts (prevents duplicate/looping renders)
+        let payload = null;
+        try { payload = JSON.stringify({ labels, values }); } catch (e) { payload = null; }
         try {
-            const payload = JSON.stringify({ labels, values });
-            if (canvas.dataset.chartInitialised === '1' && canvas.dataset.lastPayload === payload) {
+            if (payload && canvas.dataset.chartInitialised === '1' && canvas.dataset.lastPayload === payload) {
                 return; // already initialised with same data
             }
         } catch (e) { }
+
+        try { if (canvas._chartInstance && typeof canvas._chartInstance.destroy === 'function') canvas._chartInstance.destroy(); } catch (e) { }
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -85,12 +86,12 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 0 },
+                animation: false,
                 plugins: { legend: { display: false } }
             }
         });
 
-        try { canvas.dataset.lastPayload = JSON.stringify({ labels, values }); } catch (e) { }
+        try { canvas.dataset.lastPayload = payload || JSON.stringify({ labels, values }); } catch (e) { }
         canvas.dataset.chartInitialised = '1';
     }
 
