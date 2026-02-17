@@ -1,13 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="dashboard-app">
-    <div class="d-flex align-items-start mb-3">
-        <button class="btn btn-outline-secondary me-2 d-none d-md-inline" data-bs-toggle="offcanvas" data-bs-target="#managerDrawer" aria-controls="managerDrawer">
-            <i class="fa fa-bars"></i>
-        </button>
-        <h1 class="mb-0">Manager Dashboard</h1>
-    </div>
+<div class="dashboard-app d-flex vh-100">
 
     <!-- Drawer (Bootstrap offcanvas for small screens) -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="managerDrawer" aria-labelledby="managerDrawerLabel">
@@ -26,7 +20,7 @@
                 <a href="{{ route('reports.purchases') }}" class="list-group-item list-group-item-action">Purchase Reports</a>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Static sidebar for wider screens -->
     <aside class="d-none d-md-block dashboard-sidebar p-3">
@@ -65,38 +59,6 @@
     </div>
 
     {{-- manager JS loaded externally for maintainability --}}
-    <div id="managerDrawerContent" style="margin-top:1rem; display:none;">
-        <div id="drawer-section-overview" class="drawer-section">
-            <h6 class="mb-2">Overview</h6>
-            <div class="small-muted">Total products</div>
-            <div class="h4 mb-2">{{ $totalProducts ?? 0 }}</div>
-            <div class="small-muted">Low stock</div>
-            <div class="h4 mb-2">{{ count($lowStock ?? []) }}</div>
-            <div class="small-muted">Recent restocks</div>
-            <div class="h4 mb-2">{{ count($recentRestocks ?? []) }}</div>
-        </div>
-
-        <div id="drawer-section-lowstock" class="drawer-section">
-            <h6 class="mb-2">Low stock items</h6>
-            @if(count($lowStock) === 0)
-                <p class="text-muted">No low stock items.</p>
-            @else
-                <ul class="list-unstyled">
-                @foreach($lowStock as $p)
-                    <li class="mb-2">
-                        <div class="fw-bold">{{ data_get($p, 'name', data_get($p, 'product_name', 'n/a')) }}</div>
-                        <small class="text-muted">{{ data_get($p, $stockColumn, 'n/a') }} in stock</small>
-                    </li>
-                @endforeach
-                </ul>
-            @endif
-        </div>
-
-        <div id="drawer-section-purchases" class="drawer-section">
-            <h6 class="mb-2">Recent Purchases</h6>
-            @include('partials.transactions-table', ['rows' => $recentPurchases])
-        </div>
-    </div>
         </div>
     </div>
 
@@ -109,8 +71,17 @@
     #managerMainContent .manager-placeholder { padding: 3rem; text-align: center; color: #6c757d; }
     </style>
 
-    <div id="managerMainContent">
-        <div class="container-fluid">
+    <!-- Main content -->
+    <main class="flex-fill p-3 overflow-auto">
+        <!-- Topbar for small screens -->
+        <div class="d-flex align-items-center mb-3 d-md-none">
+            <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#managerDrawer" aria-controls="managerDrawer">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <h5 class="mb-0">Manager Dashboard</h5>
+        </div>
+
+        <div class="container-fluid" id="managerMainContent">
             <div class="row g-3 mb-3">
                 <div class="col-12 d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Manager Dashboard</h4>
