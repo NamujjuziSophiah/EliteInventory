@@ -190,11 +190,7 @@
                                             <div class="fw-bold">{{ data_get($p, 'name', data_get($p, 'product_name', 'n/a')) }}</div>
                                             <small class="text-muted">{{ data_get($p, $stockColumn, 'n/a') }} in stock</small>
                                         </div>
-                                        @if(auth()->check() && auth()->user()->isManager())
-                                            <button class="btn btn-sm btn-secondary" disabled>Restock (view-only)</button>
-                                        @else
-                                            <a href="{{ route('manager.purchases.create') }}" class="btn btn-sm btn-primary">Restock</a>
-                                        @endif
+                                        <a href="{{ route('manager.purchases.create') }}" class="btn btn-sm btn-primary">Restock</a>
                                     </li>
                                 @endforeach
                             </ul>
