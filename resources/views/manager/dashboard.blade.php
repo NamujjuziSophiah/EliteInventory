@@ -172,9 +172,9 @@ body.dark-mode{
         </div>
 
         <!-- KPI -->
-        <div class="row g-4 mb-4">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-4 mb-4">
 
-            <div class="col-md-6 col-xl-3">
+            <div class="col">
                 <a href="{{ route('manager.products.index') }}" class="kpi-card-link" aria-label="View total products details">
                     <div class="kpi-card">
                         <div class="card border-0 shadow-sm h-100">
@@ -191,7 +191,7 @@ body.dark-mode{
                 </a>
             </div>
 
-            <div class="col-md-6 col-xl-3">
+            <div class="col">
                 <a href="{{ route('manager.products.index', ['stock_filter' => 'low']) }}" class="kpi-card-link" aria-label="View low stock details">
                     <div class="kpi-card">
                         <div class="card border-0 shadow-sm h-100">
@@ -208,7 +208,7 @@ body.dark-mode{
                 </a>
             </div>
 
-            <div class="col-md-6 col-xl-3">
+            <div class="col">
                 <a href="{{ route('manager.purchases.index') }}" class="kpi-card-link" aria-label="View restock details">
                     <div class="kpi-card">
                         <div class="card border-0 shadow-sm h-100">
@@ -225,7 +225,7 @@ body.dark-mode{
                 </a>
             </div>
 
-            <div class="col-md-6 col-xl-3">
+            <div class="col">
                 <a href="{{ route('manager.suppliers.index') }}" class="kpi-card-link" aria-label="View supplier details">
                     <div class="kpi-card">
                         <div class="card border-0 shadow-sm h-100">
@@ -242,7 +242,7 @@ body.dark-mode{
                 </a>
             </div>
 
-            <div class="col-md-6 col-xl-3">
+            <div class="col">
                 <a href="{{ route('manager.products.index', ['stock_filter' => 'overstock']) }}" class="kpi-card-link" aria-label="View overstock details">
                     <div class="kpi-card">
                         <div class="card border-0 shadow-sm h-100">
