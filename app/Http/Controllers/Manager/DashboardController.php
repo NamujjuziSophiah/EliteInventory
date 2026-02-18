@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $svc = new DashboardService();
         $totals = $svc->getTotals();
         $lowStock = $svc->getLowStock(10);
+        $overStock = $svc->getOverStock(10);
         $trend = $svc->getSalesTrend(7);
         $recentRestocks = $svc->getRecentRestocks(5);
         $supplierSpend = $svc->getSupplierSpend(5);
@@ -24,6 +25,7 @@ class DashboardController extends Controller
 
         return view('manager.dashboard', array_merge($totals, [
             'lowStock' => $lowStock,
+            'overStock' => $overStock,
             'recentRestocks' => $recentRestocks,
             'supplierSpend' => $supplierSpend,
             'stockColumn' => $svc->detectStockColumn(),

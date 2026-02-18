@@ -7,14 +7,32 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::orderBy('name')->paginate(20);
-        return view('products.index', compact('products'));
+        $query = Product::query()->orderBy('name');
+        $stockFilter = $request->query('stock_filter');
+
+        if ($stockFilter === 'low' || $stockFilter === 'overstock') {
+            $stockColumn = $this->detectStockColumn();
+            if ($stockColumn) {
+                if ($stockFilter === 'low') {
+                    $query->where($stockColumn, '<', 5);
+                }
+
+                if ($stockFilter === 'overstock') {
+                    $query->where($stockColumn, '>=', 100);
+                }
+            }
+        }
+
+        $products = $query->paginate(20)->appends($request->query());
+
+        return view('products.index', compact('products', 'stockFilter'));
     }
 
     public function create()
@@ -251,5 +269,26 @@ class ProductController extends Controller
     {
         $route = request()->is('admin/*') ? 'admin.products.index' : 'products.index';
         return redirect()->route($route)->with('success', $message);
+    }
+
+    private function detectStockColumn(): ?string
+    {
+        if (!Schema::hasTable('products')) {
+            return null;
+        }
+
+        if (Schema::hasColumn('products', 'stock')) {
+            return 'stock';
+        }
+
+        if (Schema::hasColumn('products', 'quantity')) {
+            return 'quantity';
+        }
+
+        if (Schema::hasColumn('products', 'qty')) {
+            return 'qty';
+        }
+
+        return null;
     }
 }

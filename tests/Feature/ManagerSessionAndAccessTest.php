@@ -28,6 +28,7 @@ class ManagerSessionAndAccessTest extends TestCase
         $response->assertJsonStructure([
             'totalProducts',
             'lowStock',
+            'overStock',
             'recentRestocks',
             'topSuppliers',
             'salesTrendLabels',

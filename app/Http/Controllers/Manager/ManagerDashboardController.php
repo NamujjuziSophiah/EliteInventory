@@ -13,6 +13,9 @@ use App\Models\Supplier;
 
 class ManagerDashboardController extends Controller
 {
+    private const LOW_STOCK_THRESHOLD = 5;
+    private const OVERSTOCK_THRESHOLD = 100;
+
     public function index(Request $request)
     {
         // total products
@@ -30,9 +33,15 @@ class ManagerDashboardController extends Controller
 
         // low stock products
         $lowStock = collect();
+        $overStock = collect();
         if ($stockColumn) {
             $lowStock = DB::table('products')
-                ->where($stockColumn, '<=', 5)
+                ->where($stockColumn, '<', self::LOW_STOCK_THRESHOLD)
+                ->limit(10)
+                ->get();
+
+            $overStock = DB::table('products')
+                ->where($stockColumn, '>=', self::OVERSTOCK_THRESHOLD)
                 ->limit(10)
                 ->get();
         }
@@ -74,6 +83,7 @@ class ManagerDashboardController extends Controller
         return view('manager.dashboard', compact(
             'totalProducts',
             'lowStock',
+            'overStock',
             'recentRestocks',
             'supplierSpend',
             'stockColumn',
@@ -83,9 +93,33 @@ class ManagerDashboardController extends Controller
 
     public function data()
     {
+        $stockColumn = null;
+        if (Schema::hasTable('products')) {
+            if (Schema::hasColumn('products', 'stock')) {
+                $stockColumn = 'stock';
+            } elseif (Schema::hasColumn('products', 'quantity')) {
+                $stockColumn = 'quantity';
+            } elseif (Schema::hasColumn('products', 'qty')) {
+                $stockColumn = 'qty';
+            }
+        }
+
+        $lowStockCount = 0;
+        $overStockCount = 0;
+        if ($stockColumn) {
+            $lowStockCount = DB::table('products')
+                ->where($stockColumn, '<', self::LOW_STOCK_THRESHOLD)
+                ->count();
+
+            $overStockCount = DB::table('products')
+                ->where($stockColumn, '>=', self::OVERSTOCK_THRESHOLD)
+                ->count();
+        }
+
         return response()->json([
             'totalProducts' => Schema::hasTable('products') ? Product::count() : 0,
-            'lowStock' => Schema::hasTable('products') ? Product::where('stock', '<', 10)->count() : 0,
+            'lowStock' => $lowStockCount,
+            'overStock' => $overStockCount,
             'recentRestocks' => Schema::hasTable('purchases') ? Purchase::whereDate('created_at', '>=', now()->subDays(7))->count() : 0,
             'topSuppliers' => Schema::hasTable('suppliers') ? Supplier::count() : 0,
             'salesTrendLabels' => $this->getSalesTrendLabels(),

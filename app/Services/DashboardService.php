@@ -10,6 +10,9 @@ use App\Models\Purchase;
 
 class DashboardService
 {
+    private const LOW_STOCK_THRESHOLD = 5;
+    private const OVERSTOCK_THRESHOLD = 100;
+
     public function getTotals(): array
     {
         return [
@@ -77,7 +80,14 @@ class DashboardService
     {
         $col = $this->detectStockColumn();
         if (! $col) return collect([]);
-        return DB::table('products')->where($col, '<=', 5)->limit($limit)->get();
+        return DB::table('products')->where($col, '<', self::LOW_STOCK_THRESHOLD)->limit($limit)->get();
+    }
+
+    public function getOverStock(int $limit = 10)
+    {
+        $col = $this->detectStockColumn();
+        if (! $col) return collect([]);
+        return DB::table('products')->where($col, '>=', self::OVERSTOCK_THRESHOLD)->limit($limit)->get();
     }
 
     public function getRecentRestocks(int $limit = 5)

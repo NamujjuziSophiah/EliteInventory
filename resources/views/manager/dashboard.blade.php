@@ -64,6 +64,7 @@ body.dark-mode{
 }
 
 /* ===== KPI ===== */
+.kpi-card-link{display:block;color:inherit;text-decoration:none;height:100%;}
 .kpi-card .card{
     border-radius:16px;
     background:var(--card);
@@ -135,10 +136,12 @@ body.dark-mode{
 
         <!-- TOPBAR -->
         <div class="topbar d-flex justify-content-between align-items-center">
-            
-            <button class="btn btn-outline-secondary d-md-none" onclick="toggleSidebar()">
-                ☰ Menu
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary d-md-none" onclick="toggleSidebar()">
+                    ☰ Menu
+                </button>
+                <h5 class="mb-0 fw-bold">Manager Dashboard</h5>
+            </div>
 
             <div class="d-flex align-items-center gap-3 ms-auto">
 
@@ -172,63 +175,88 @@ body.dark-mode{
         <div class="row g-4 mb-4">
 
             <div class="col-md-6 col-xl-3">
-                <div class="kpi-card">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body d-flex align-items-center">
-                            <div class="kpi-icon bg-primary"><i class="fa fa-box"></i></div>
-                            <div class="ms-3">
-                                <div class="text-muted small">Total Products</div>
-                                <div class="fs-4 fw-bold counter"
-                                     data-target="{{ $totalProducts??0 }}">0</div>
+                <a href="{{ route('manager.products.index') }}" class="kpi-card-link" aria-label="View total products details">
+                    <div class="kpi-card">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-primary"><i class="fa fa-box"></i></div>
+                                <div class="ms-3">
+                                    <div class="text-muted small">Total Products</div>
+                                    <div class="fs-4 fw-bold counter"
+                                         data-target="{{ $totalProducts??0 }}">0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <div class="col-md-6 col-xl-3">
-                <div class="kpi-card">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body d-flex align-items-center">
-                            <div class="kpi-icon bg-warning"><i class="fa fa-exclamation-triangle"></i></div>
-                            <div class="ms-3">
-                                <div class="text-muted small">Low Stock</div>
-                                <div class="fs-4 fw-bold counter"
-                                     data-target="{{ isset($lowStock)?count($lowStock):0 }}">0</div>
+                <a href="{{ route('manager.products.index', ['stock_filter' => 'low']) }}" class="kpi-card-link" aria-label="View low stock details">
+                    <div class="kpi-card">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-warning"><i class="fa fa-exclamation-triangle"></i></div>
+                                <div class="ms-3">
+                                    <div class="text-muted small">Low Stock (&lt;5)</div>
+                                    <div class="fs-4 fw-bold counter"
+                                         data-target="{{ isset($lowStock)?count($lowStock):0 }}">0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <div class="col-md-6 col-xl-3">
-                <div class="kpi-card">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body d-flex align-items-center">
-                            <div class="kpi-icon bg-success"><i class="fa fa-truck"></i></div>
-                            <div class="ms-3">
-                                <div class="text-muted small">Restocks</div>
-                                <div class="fs-4 fw-bold counter"
-                                     data-target="{{ isset($recentRestocks)?count($recentRestocks):0 }}">0</div>
+                <a href="{{ route('manager.purchases.index') }}" class="kpi-card-link" aria-label="View restock details">
+                    <div class="kpi-card">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-success"><i class="fa fa-truck"></i></div>
+                                <div class="ms-3">
+                                    <div class="text-muted small">Restocks</div>
+                                    <div class="fs-4 fw-bold counter"
+                                         data-target="{{ isset($recentRestocks)?count($recentRestocks):0 }}">0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <div class="col-md-6 col-xl-3">
-                <div class="kpi-card">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body d-flex align-items-center">
-                            <div class="kpi-icon bg-info"><i class="fa fa-handshake"></i></div>
-                            <div class="ms-3">
-                                <div class="text-muted small">Suppliers</div>
-                                <div class="fs-4 fw-bold counter"
-                                     data-target="{{ isset($supplierSpend)?count($supplierSpend):0 }}">0</div>
+                <a href="{{ route('manager.suppliers.index') }}" class="kpi-card-link" aria-label="View supplier details">
+                    <div class="kpi-card">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-info"><i class="fa fa-handshake"></i></div>
+                                <div class="ms-3">
+                                    <div class="text-muted small">Suppliers</div>
+                                    <div class="fs-4 fw-bold counter"
+                                         data-target="{{ isset($supplierSpend)?count($supplierSpend):0 }}">0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <a href="{{ route('manager.products.index', ['stock_filter' => 'overstock']) }}" class="kpi-card-link" aria-label="View overstock details">
+                    <div class="kpi-card">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-danger"><i class="fa fa-layer-group"></i></div>
+                                <div class="ms-3">
+                                    <div class="text-muted small">Overstock (&ge;100)</div>
+                                    <div class="fs-4 fw-bold counter"
+                                         data-target="{{ isset($overStock)?count($overStock):0 }}">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
 
         </div>

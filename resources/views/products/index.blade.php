@@ -19,6 +19,13 @@
         @endif
     </div>
 
+    @if(($stockFilter ?? null) === 'low')
+        <div class="alert alert-warning py-2">Showing Low Stock products (quantity below 5).</div>
+    @endif
+    @if(($stockFilter ?? null) === 'overstock')
+        <div class="alert alert-danger py-2">Showing Overstock products (quantity 100 and above).</div>
+    @endif
+
     <form method="GET" id="labels-form" target="_blank"
           @if(request()->is('admin/*'))
               action="{{ Route::has('admin.products.labels.print') ? route('admin.products.labels.print') : '#' }}"
