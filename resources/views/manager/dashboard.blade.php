@@ -69,10 +69,16 @@ body.dark-mode{
     border-radius:16px;
     background:var(--card);
     transition:.25s;
+    min-height:120px;
 }
 .kpi-card .card:hover{
     transform:translateY(-4px);
     box-shadow:0 12px 30px rgba(0,0,0,.08)!important;
+}
+.kpi-card .card-body{
+    min-height:120px;
+    display:flex;
+    align-items:center;
 }
 .kpi-icon{
     width:50px;height:50px;
