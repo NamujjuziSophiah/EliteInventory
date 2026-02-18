@@ -33,15 +33,14 @@
 
 
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN -->
     <main class="flex-fill p-4">
 
-        <!-- PAGE HEADER -->
+        <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-semibold mb-0">Cashier Dashboard</h3>
             <small class="text-muted">Updated: {{ now()->diffForHumans() }}</small>
         </div>
-
 
         @if(!empty($error))
             <div class="alert alert-warning">{{ $error }}</div>
@@ -49,32 +48,44 @@
 
 
 
-        <!-- SALES SUMMARY -->
+        <!-- COLOURED SUMMARY CARDS -->
         <div class="row g-3 mb-4">
 
+            <!-- SALES -->
             <div class="col-md-4">
-                <div class="card shadow-sm p-3 h-100">
-                    <div class="text-muted small">Today's Sales</div>
-                    <div class="h4 mb-0">
-                        {{ format_currency($salesTotal ?? 0) }}
+                <div class="card text-white shadow-sm h-100"
+                     style="background:linear-gradient(135deg,#2b7cff,#1c54d3)">
+                    <div class="card-body">
+                        <div class="small opacity-75">Today's Sales</div>
+                        <div class="h3 mb-0">
+                            {{ format_currency($salesTotal ?? 0) }}
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- TRANSACTIONS -->
             <div class="col-md-4">
-                <div class="card shadow-sm p-3 h-100">
-                    <div class="text-muted small">Transactions Today</div>
-                    <div class="h4 mb-0">
-                        {{ $salesCount ?? 0 }}
+                <div class="card text-white shadow-sm h-100"
+                     style="background:linear-gradient(135deg,#ff8a00,#e56b00)">
+                    <div class="card-body">
+                        <div class="small opacity-75">Transactions Today</div>
+                        <div class="h3 mb-0">
+                            {{ $salesCount ?? 0 }}
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- LOW STOCK -->
             <div class="col-md-4">
-                <div class="card shadow-sm p-3 h-100">
-                    <div class="text-muted small">Low Stock Alerts</div>
-                    <div class="h4 mb-0">
-                        {{ is_countable($lowStock ?? null) ? count($lowStock) : 0 }}
+                <div class="card text-white shadow-sm h-100"
+                     style="background:linear-gradient(135deg,#dc3545,#b02a37)">
+                    <div class="card-body">
+                        <div class="small opacity-75">Low Stock Alerts</div>
+                        <div class="h3 mb-0">
+                            {{ is_countable($lowStock ?? null) ? count($lowStock) : 0 }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,7 +94,7 @@
 
 
 
-        <!-- LOW STOCK SECTION -->
+        <!-- LOW STOCK TABLE -->
         <div class="card shadow-sm">
 
             <div class="card-header bg-white fw-semibold">
