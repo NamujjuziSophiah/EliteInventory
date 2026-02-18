@@ -165,7 +165,7 @@
             <div id="cartItems" class="card card-modern" style="min-height:120px">
                 <h6>Cart</h6>
                 <div id="cartList">No items</div>
-                <div class="mt-3 d-flex justify-content-between align-items-center">
+                <div class="cart-actions d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <input id="cartDiscount" type="number" min="0" step="0.01" class="form-control form-control-sm" style="width:140px" placeholder="Discount">
                     </div>

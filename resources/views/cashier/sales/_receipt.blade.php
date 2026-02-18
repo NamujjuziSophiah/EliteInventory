@@ -1,5 +1,17 @@
 <div id="receiptContent" class="p-2">
 
+    <style>
+        #receiptContent .table-receipt{table-layout:fixed;width:100%;}
+        #receiptContent .table-receipt th,
+        #receiptContent .table-receipt td{vertical-align:top;}
+        #receiptContent .col-item{width:50%;}
+        #receiptContent .col-qty{width:12%;}
+        #receiptContent .col-price{width:18%;}
+        #receiptContent .col-total{width:20%;}
+        #receiptContent .item-name{display:block;white-space:normal;word-break:break-word;}
+        #receiptContent .receipt-scroll{max-height:320px;overflow-y:auto;}
+    </style>
+
     <!-- COMPANY HEADER -->
     <div class="text-center mb-2">
         <h4 class="mb-0 fw-bold">ELITE RETAIL SHOP</h4>
@@ -23,19 +35,20 @@
     </div>
 
     <!-- ITEMS TABLE -->
-    <table class="table table-sm mb-2">
+    <div class="receipt-scroll">
+    <table class="table table-sm mb-2 table-receipt">
         <thead class="border-top border-bottom">
             <tr class="small">
-                <th>Item</th>
-                <th class="text-center">Qty</th>
-                <th class="text-end">Price</th>
-                <th class="text-end">Total</th>
+                <th class="col-item">Item</th>
+                <th class="text-center col-qty">Qty</th>
+                <th class="text-end col-price">Price</th>
+                <th class="text-end col-total">Total</th>
             </tr>
         </thead>
         <tbody>
         @foreach($sale->items as $it)
             <tr class="small">
-                <td>{{ $it->product->name ?? $it->product->title ?? 'Item '.$it->product_id }}</td>
+                <td><span class="item-name">{{ $it->product->name ?? $it->product->title ?? 'Item '.$it->product_id }}</span></td>
                 <td class="text-center">{{ $it->qty }}</td>
                 <td class="text-end">{{ format_currency($it->price) }}</td>
                 <td class="text-end">{{ format_currency($it->price * $it->qty) }}</td>
@@ -43,6 +56,7 @@
         @endforeach
         </tbody>
     </table>
+    </div>
 
     <hr class="my-2">
 
