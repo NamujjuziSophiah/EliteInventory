@@ -13,7 +13,7 @@
         </div>
         <div class="col-12 col-md-6 d-none d-md-block text-center">
             <div class="shadow rounded p-4" style="background:linear-gradient(180deg,#fff,#f7fbff);">
-                <img src="/images/hero-inventory.svg" alt="Inventory" style="max-width:100%;height:320px;object-fit:contain;">
+                <img src="https://images.unsplash.com/photo-1506619216599-9d16d0903dfd?auto=format&fit=crop&w=900&q=80" alt="Warehouse shelves" style="width:100%;height:320px;object-fit:cover;border-radius:12px;">
             </div>
         </div>
     </div>
