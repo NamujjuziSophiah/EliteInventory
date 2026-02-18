@@ -71,7 +71,19 @@
                             <td><span class="badge bg-info text-dark">{{ $log->action }}</span></td>
                             <td>{{ $log->ip }}</td>
                             <td class="text-truncate" style="max-width: 200px;">{{ $log->user_agent }}</td>
-                            <td class="text-truncate" style="max-width: 200px;">{{ json_encode($log->meta) }}</td>
+                            <td class="text-truncate" style="max-width: 200px;">
+                                @php $meta = $log->meta ?? []; @endphp
+                                @if(empty($meta))
+                                    <span class="text-muted">—</span>
+                                @else
+                                    {{ collect($meta)->map(function ($v, $k) {
+                                        if (is_array($v)) {
+                                            $v = json_encode($v);
+                                        }
+                                        return $k.': '.$v;
+                                    })->implode(', ') }}
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>

@@ -1,32 +1,40 @@
-<div id="receiptContent">
-    <div class="row mb-2">
-        <div class="col-8">
-            <h5 class="mb-0">{{ config('app.name', 'Store') }}</h5>
-            <small class="text-muted">{{ config('app.address', '') }}</small>
+<div id="receiptContent" class="p-2">
+
+    <!-- COMPANY HEADER -->
+    <div class="text-center mb-2">
+        <h4 class="mb-0 fw-bold">ELITE RETAIL SHOP</h4>
+        <small class="text-muted">{{ config('app.address','') }}</small>
+        <div class="small">Tel: {{ config('app.phone','') }}</div>
+        <hr class="my-2">
+    </div>
+
+    <!-- RECEIPT INFO -->
+    <div class="d-flex justify-content-between small mb-2">
+        <div>
+            <div><strong>Receipt:</strong> #{{ $sale->id }}</div>
+            <div><strong>Date:</strong> {{ $sale->created_at }}</div>
         </div>
-        <div class="col-4 text-end">
-            <div><strong>Receipt #</strong> {{ $sale->id }}</div>
-            <div class="small text-muted">{{ $sale->created_at }}</div>
+        <div class="text-end">
+            <div><strong>Cashier:</strong> {{ $sale->user->name ?? 'N/A' }}</div>
+            @if(!empty($sale->customer))
+                <div><strong>Customer:</strong> {{ $sale->customer->name }}</div>
+            @endif
         </div>
     </div>
 
-    <div class="row mb-2">
-        <div class="col-6"><strong>Cashier:</strong> {{ $sale->user->name ?? 'n/a' }}</div>
-        <div class="col-6 text-end">@if(isset($sale->customer) && $sale->customer)<strong>Customer:</strong> {{ $sale->customer->name }} {{ $sale->customer->phone ? '• '.$sale->customer->phone : '' }}@endif</div>
-    </div>
-
-    <table class="table table-sm">
-        <thead>
-            <tr>
+    <!-- ITEMS TABLE -->
+    <table class="table table-sm mb-2">
+        <thead class="border-top border-bottom">
+            <tr class="small">
                 <th>Item</th>
                 <th class="text-center">Qty</th>
-                <th class="text-end">Price per Qty</th>
-                <th class="text-end">Total Amount</th>
+                <th class="text-end">Price</th>
+                <th class="text-end">Total</th>
             </tr>
         </thead>
         <tbody>
         @foreach($sale->items as $it)
-            <tr>
+            <tr class="small">
                 <td>{{ $it->product->name ?? $it->product->title ?? 'Item '.$it->product_id }}</td>
                 <td class="text-center">{{ $it->qty }}</td>
                 <td class="text-end">{{ format_currency($it->price) }}</td>
@@ -36,26 +44,39 @@
         </tbody>
     </table>
 
-    <div class="row mt-2">
-        <div class="col-6">
-            @if($sale->payments && $sale->payments->count())
-                <div><strong>Payment breakdown</strong></div>
-                <ul class="list-unstyled small mb-0">
-                    @foreach($sale->payments as $p)
-                        <li>{{ ucfirst($p->method ?? 'unknown') }}: {{ format_currency($p->amount) }}</li>
-                    @endforeach
-                </ul>
-            @endif
+    <hr class="my-2">
+
+    <!-- TOTALS -->
+    <div class="small">
+        @if(!empty($sale->discount) && $sale->discount > 0)
+        <div class="d-flex justify-content-between">
+            <span>Discount</span>
+            <span>{{ format_currency($sale->discount) }}</span>
         </div>
-        <div class="col-6 text-end">
-            <div>Discount: {{ format_currency($sale->discount ?? 0) }}</div>
-            <div class="h5">Total Amount: {{ format_currency($sale->total) }}</div>
-            @if(function_exists('numberToWords'))
-                <div class="small text-muted">Amount (in words): {{ ucfirst(numberToWords($sale->total)) }}</div>
-            @endif
-            @if(isset($customerBalance))
-                <div>Customer Balance: {{ format_currency($customerBalance) }}</div>
-            @endif
+        @endif
+
+        <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>TOTAL</span>
+            <span>{{ format_currency($sale->total) }}</span>
         </div>
     </div>
+
+    <!-- PAYMENT METHOD -->
+    @if(!empty($sale->payments) && $sale->payments->count())
+    <div class="small mt-2">
+        <strong>Payment:</strong>
+        @foreach($sale->payments as $p)
+            {{ ucfirst($p->method ?? 'Cash') }}
+            ({{ format_currency($p->amount) }})
+        @endforeach
+    </div>
+    @endif
+
+    <!-- FOOTER -->
+    <div class="text-center mt-3 small">
+        <hr class="my-2">
+        <div>Thank you for shopping with us</div>
+        <div>Please come again</div>
+    </div>
+
 </div>

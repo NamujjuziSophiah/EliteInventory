@@ -67,6 +67,9 @@
             <a class="nav-link {{ request()->routeIs('admin.customers.*')?'active':'' }}"
                href="{{ route('admin.customers.index') }}">Customers</a>
 
+                <a class="nav-link {{ request()->routeIs('admin.suppliers.*')?'active':'' }}"
+                    href="{{ route('admin.suppliers.index') }}">Suppliers</a>
+
             <a class="nav-link {{ request()->routeIs('admin.reports.*')?'active':'' }}"
                href="{{ route('admin.reports.index') }}">Reports</a>
 
@@ -106,6 +109,9 @@
 
             <a class="nav-link {{ request()->routeIs('admin.customers.*')?'active':'' }}"
                href="{{ route('admin.customers.index') }}">Customers</a>
+
+                <a class="nav-link {{ request()->routeIs('admin.suppliers.*')?'active':'' }}"
+                    href="{{ route('admin.suppliers.index') }}">Suppliers</a>
 
             <a class="nav-link {{ request()->routeIs('admin.reports.*')?'active':'' }}"
                href="{{ route('admin.reports.index') }}">Reports</a>

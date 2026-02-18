@@ -11,7 +11,7 @@
             <a class="nav-link" href="{{ route('cashier.pos') }}">Open POS</a>
             <a class="nav-link" href="{{ route('cashier.sales.index') }}">Sales History</a>
             <a class="nav-link" href="#">Reprint Receipt</a>
-            <a class="nav-link" href="#">Change Password</a>
+            <a class="nav-link" href="{{ route('password.request') }}">Change Password</a>
         </nav>
     </aside>
 
