@@ -102,8 +102,9 @@
                 const btn = document.createElement('button'); btn.className = 'btn btn-sm btn-primary mt-2'; btn.innerText = 'Add to cart';
                 // prefer a modal for quantity entry when available, fallback to prompt
                 btn.addEventListener('click', () => {
+                    let usedModal = false;
                     if (typeof openQtyModal === 'function') {
-                        openQtyModal(p, p.available, 1, function (qty, discount) {
+                        usedModal = openQtyModal(p, p.available, 1, function (qty, discount) {
                             // discount is optional per-line discount
                             addToCart(p, p.available, qty);
                             // apply discount if provided and cart entry exists
@@ -113,8 +114,12 @@
                             }
                             renderCart();
                         });
-                    } else {
-                        let q = prompt('Quantity', '1'); let qty = parseInt(q, 10) || 1; addToCart(p, p.available, qty);
+                    }
+
+                    if (!usedModal) {
+                        let q = prompt('Quantity', '1');
+                        let qty = parseInt(q, 10) || 1;
+                        addToCart(p, p.available, qty);
                     }
                 });
                 card.appendChild(title); card.appendChild(meta); card.appendChild(btn); col.appendChild(card); container.appendChild(col);
@@ -124,7 +129,7 @@
         // Quantity modal helper (requires #qtyModal in DOM)
         function openQtyModal(product, available, defaultQty, cb) {
             const modalEl = document.getElementById('qtyModal');
-            if (!modalEl) return null;
+            if (!modalEl) return false;
             const qtyInput = document.getElementById('qtyModalQuantity');
             const discInput = document.getElementById('qtyModalDiscount');
             const confirmBtn = document.getElementById('qtyModalConfirm');
@@ -143,6 +148,7 @@
             }
             confirmBtn.addEventListener('click', onConfirm);
             bs.show();
+            return true;
         }
 
         // debounce
