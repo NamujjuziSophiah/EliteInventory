@@ -22,6 +22,6 @@ class ManagerDashboardTest extends TestCase
             ->get(route('manager.dashboard'))
             ->assertStatus(200)
             ->assertSeeText('Manager Dashboard')
-            ->assertSeeText('Total products');
+            ->assertSeeText('Total Products');
     }
 }

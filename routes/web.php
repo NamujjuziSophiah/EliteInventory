@@ -38,6 +38,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Manager\PurchasesController;
 use App\Http\Controllers\Manager\SalesController as ManagerSalesController;
 use App\Http\Controllers\Manager\DashboardController as ManagerDashboardController;
+use App\Http\Controllers\Manager\ManagerDashboardController as ManagerDashboardDataController;
 
 // Default root: show landing welcome page or auto-redirect authenticated users if enabled in settings
 use Illuminate\Support\Facades\Schema;
@@ -333,5 +334,5 @@ Route::middleware(['auth','ensure.role:admin'])->get('diagnostics/health', funct
 // AJAX endpoints for small UI helpers (authenticated)
 Route::middleware(['auth'])->get('ajax/products/{id}', [ProductController::class, 'ajaxGet'])->name('ajax.products.get');
 Route::middleware(['auth','ensure.role:manager|admin'])->get('/manager/dashboard/data',
-    [ManagerDashboardController::class, 'data']
+    [ManagerDashboardDataController::class, 'data']
 )->name('manager.dashboard.data');

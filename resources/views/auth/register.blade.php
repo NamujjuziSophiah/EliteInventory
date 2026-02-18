@@ -21,25 +21,25 @@
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input name="name" class="form-control" required>
+                        <label for="name" class="form-label">Name</label>
+                        <input id="name" name="name" class="form-control" required aria-label="Full name">
                     </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input name="email" type="email" class="form-control" required>
+                            <label for="email" class="form-label">Email</label>
+                            <input id="email" name="email" type="email" class="form-control" required aria-label="Email address">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input name="password" type="password" class="form-control" required>
+                            <label for="password" class="form-label">Password</label>
+                            <input id="password" name="password" type="password" class="form-control" required aria-label="Password">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Confirm Password</label>
-                            <input name="password_confirmation" type="password" class="form-control" required>
+                            <label for="password_confirmation" class="form-label">Confirm Password</label>
+                            <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" required aria-label="Confirm password">
                         </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Role</label>
-                        <select id="roleSelect" name="role" class="form-select" required>
+                        <label for="roleSelect" class="form-label">Role</label>
+                        <select id="roleSelect" name="role" class="form-select" required aria-label="User role">
                             <option value="admin">Admin</option>
                             <option value="manager">Manager</option>
                             <option value="cashier">Cashier</option>
@@ -48,7 +48,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <button class="btn btn-primary">Register</button>
+                        <button type="submit" class="btn btn-primary">Register</button>
                         <a href="{{ route('login') }}" class="btn btn-link">Already have an account? Login</a>
                     </div>
                 </form>

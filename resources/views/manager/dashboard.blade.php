@@ -130,31 +130,17 @@ body.dark-mode{
 
     </aside>
 
+    <!-- MAIN CONTENT -->
+    <main class="flex-fill p-3">
 
+        <!-- TOPBAR -->
+        <div class="topbar d-flex justify-content-between align-items-center">
+            
+            <button class="btn btn-outline-secondary d-md-none" onclick="toggleSidebar()">
+                ☰ Menu
+            </button>
 
-    <!-- MAIN -->
-    <main class="flex-fill p-4">
-
-        <!-- TOP NAVBAR -->
-        <div class="topbar d-flex justify-content-between align-items-center shadow-sm">
-
-            <div class="d-flex align-items-center gap-3">
-
-                <!-- MOBILE MENU -->
-                <button class="btn btn-light d-md-none" onclick="toggleSidebar()">
-                    ☰
-                </button>
-
-                <div>
-                    <h5 class="mb-0 fw-bold">Manager Dashboard</h5>
-                    <small class="text-muted">
-                        Updated <span id="lastUpdated">{{ now()->diffForHumans() }}</span>
-                    </small>
-                </div>
-
-            </div>
-
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3 ms-auto">
 
                 <!-- DARK MODE -->
                 <button class="btn btn-outline-secondary btn-sm" onclick="toggleDarkMode()">
@@ -181,8 +167,6 @@ body.dark-mode{
 
             </div>
         </div>
-
-
 
         <!-- KPI -->
         <div class="row g-4 mb-4">

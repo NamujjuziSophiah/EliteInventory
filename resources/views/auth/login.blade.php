@@ -21,16 +21,16 @@
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input name="email" type="email" class="form-control" required>
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" name="email" type="email" class="form-control" required aria-label="Email address">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input name="password" type="password" class="form-control" required>
+                        <label for="password" class="form-label">Password</label>
+                        <input id="password" name="password" type="password" class="form-control" required aria-label="Password">
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <button class="btn btn-primary">Login</button>
+                            <button type="submit" class="btn btn-primary">Login</button>
                             <a href="{{ route('password.request') }}" class="btn btn-link ms-2">Forgot your password?</a>
                         </div>
                         <a href="{{ route('register') }}" class="btn btn-link">Don't have an account? Register</a>

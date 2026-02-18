@@ -63,16 +63,16 @@
                 <h4 class="mb-3">Sign in</h4>
                                                 <form method="POST" action="http://127.0.0.1:8000/login">
                     <input type="hidden" name="_token" value="Tu071kkczsvCki6HjQpmxAvRaGQsEjeFZEIcjsYE">                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input name="email" type="email" class="form-control" required>
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" name="email" type="email" class="form-control" required aria-label="Email address">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input name="password" type="password" class="form-control" required>
+                        <label for="password" class="form-label">Password</label>
+                        <input id="password" name="password" type="password" class="form-control" required aria-label="Password">
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <button class="btn btn-primary">Login</button>
+                            <button type="submit" class="btn btn-primary">Login</button>
                             <a href="http://127.0.0.1:8000/password/reset" class="btn btn-link ms-2">Forgot your password?</a>
                         </div>
                         <a href="http://127.0.0.1:8000/register" class="btn btn-link">Don't have an account? Register</a>
