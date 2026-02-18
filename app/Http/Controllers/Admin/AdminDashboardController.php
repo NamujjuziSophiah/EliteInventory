@@ -18,6 +18,7 @@ class AdminDashboardController extends Controller
         $today = $svc->getTodaysSales();
         $trend = $svc->getSalesTrend(7);
         $lowStock = $svc->getLowStock(10);
+        $overStock = $svc->getOverStock(10);
         $productQuantityColumn = $svc->detectStockColumn();
     $recentPurchases = $svc->getRecentPurchasesTable(10);
     $recentSales = $svc->getRecentSales(10);
@@ -63,6 +64,7 @@ class AdminDashboardController extends Controller
             'grossMarginPercent' => $grossMarginPercent,
             'outstandingCredits' => $outstandingCredits,
             'lowStock' => $lowStock,
+            'overStock' => $overStock,
             'productQuantityColumn' => $productQuantityColumn,
             'recentPurchases' => $recentPurchases,
             'recentSales' => $recentSales

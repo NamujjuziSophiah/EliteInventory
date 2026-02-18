@@ -133,7 +133,7 @@
                 <!-- Low stock card (doughnut) -->
                 <div class="col-12 col-lg-6">
                     <div class="card p-3 h-100">
-                        <h5>Low stock</h5>
+                        <h5>Low stock (below 5)</h5>
                         @php
                             $lsLabels = [];
                             $lsValues = [];
@@ -161,6 +161,34 @@
                                         <li class="py-1">{{ data_get($p, 'name', 'Unnamed') }} — {{ $productQuantityColumn ? data_get($p, $productQuantityColumn, '0') : data_get($p, 'stock', '0') }}</li>
                                     @empty
                                         <li class="text-muted">No low-stock products</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overstock list -->
+                <div class="col-12 col-lg-6">
+                    <div class="card p-3 h-100">
+                        <h5>Overstock (100 and above)</h5>
+                        @php
+                            if (is_array($overStock ?? null)) {
+                                $topOverStock = array_slice($overStock, 0, 8);
+                            } elseif (($overStock ?? null) instanceof \Illuminate\Support\Collection) {
+                                $topOverStock = $overStock->slice(0,8)->all();
+                            } else {
+                                $topOverStock = [];
+                            }
+                        @endphp
+                        <div class="row g-3 align-items-center">
+                            <div class="col-12">
+                                <div class="small text-muted">Top overstocked items</div>
+                                <ul class="list-unstyled mt-2 mb-0">
+                                    @forelse($topOverStock as $p)
+                                        <li class="py-1">{{ data_get($p, 'name', 'Unnamed') }} — {{ $productQuantityColumn ? data_get($p, $productQuantityColumn, '0') : data_get($p, 'stock', '0') }}</li>
+                                    @empty
+                                        <li class="text-muted">No overstock products</li>
                                     @endforelse
                                 </ul>
                             </div>
