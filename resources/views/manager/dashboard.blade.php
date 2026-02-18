@@ -1,314 +1,323 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="dashboard-app d-flex vh-100">
 
-    <!-- Drawer (Bootstrap offcanvas for small screens) -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="managerDrawer" aria-labelledby="managerDrawerLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="managerDrawerLabel">Actions</h5>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <div class="list-group">
-                <a href="#section-overview" data-section="section-overview" class="list-group-item list-group-item-action">Overview</a>
-                <a href="{{ route('manager.products.index') }}" class="list-group-item list-group-item-action">Products</a>
-                <a href="{{ route('manager.categories.index') }}" class="list-group-item list-group-item-action">Categories</a>
-                <a href="{{ route('manager.suppliers.index') }}" class="list-group-item list-group-item-action">Suppliers</a>
-                <a href="{{ route('manager.purchases.index') }}" class="list-group-item list-group-item-action">Purchases</a>
-                <a href="{{ route('manager.sales.index') }}" class="list-group-item list-group-item-action">Sales (read-only)</a>
-                <a href="{{ route('reports.purchases') }}" class="list-group-item list-group-item-action">Purchase Reports</a>
-            </div>
-        </div>
-        </div>
-    </div>
+<style>
 
-    <!-- Static sidebar for wider screens -->
-    <aside class="d-none d-md-block dashboard-sidebar p-3">
-        <div class="mb-3">
-            <h5 class="mb-0">Manager</h5>
-            <div class="small text-muted">Navigation</div>
-        </div>
-        <nav class="nav flex-column">
-            <a href="#section-overview" data-section="section-overview" class="nav-link">Overview</a>
-            <a href="{{ route('manager.products.index') }}" class="nav-link">Products</a>
-            <a href="{{ route('manager.categories.index') }}" class="nav-link">Categories</a>
-            <a href="{{ route('manager.suppliers.index') }}" class="nav-link">Suppliers</a>
-            <a href="{{ route('manager.purchases.index') }}" class="nav-link">Purchases</a>
-            <a href="{{ route('manager.sales.index') }}" class="nav-link">Sales (read-only)</a>
-            <a href="{{ route('reports.purchases') }}" class="nav-link">Purchase Reports</a>
+/* ===== ROOT COLORS ===== */
+:root{
+    --sidebar:#111827;
+    --sidebar-hover:#1f2937;
+    --primary:#2563eb;
+    --bg:#f6f8fb;
+    --card:#ffffff;
+}
+
+body.dark-mode{
+    --bg:#0b1220;
+    --card:#111827;
+    --sidebar:#020617;
+    color:#e5e7eb;
+}
+
+.dashboard-app{background:var(--bg);}
+
+/* ===== SIDEBAR ===== */
+.dashboard-sidebar{
+    width:260px;
+    background:var(--sidebar);
+    color:white;
+    transition:.25s;
+}
+.dashboard-sidebar .nav-link{
+    color:#cbd5e1;
+    border-radius:8px;
+    padding:.6rem .8rem;
+}
+.dashboard-sidebar .nav-link:hover{
+    background:var(--sidebar-hover);
+    color:white;
+}
+.dashboard-sidebar .nav-link.active{
+    background:var(--primary);
+    color:white;
+}
+
+/* ===== MOBILE SIDEBAR ===== */
+@media(max-width:768px){
+    .dashboard-sidebar{
+        position:fixed;
+        left:-260px;
+        top:0;
+        bottom:0;
+        z-index:999;
+    }
+    .dashboard-sidebar.show{ left:0; }
+}
+
+/* ===== TOPBAR ===== */
+.topbar{
+    background:var(--card);
+    border-radius:14px;
+    padding:12px 18px;
+    margin-bottom:20px;
+}
+
+/* ===== KPI ===== */
+.kpi-card .card{
+    border-radius:16px;
+    background:var(--card);
+    transition:.25s;
+}
+.kpi-card .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 30px rgba(0,0,0,.08)!important;
+}
+.kpi-icon{
+    width:50px;height:50px;
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-size:18px;
+}
+
+/* ===== CARDS ===== */
+.card{border-radius:18px;background:var(--card);}
+
+/* ===== NOTIFICATION DOT ===== */
+.notif-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:red;display:inline-block;margin-left:4px;
+}
+
+</style>
+
+
+<div class="dashboard-app d-flex min-vh-100">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="dashboard-sidebar d-flex flex-column p-3">
+
+        <h5 class="fw-bold mb-4">Manager Panel</h5>
+
+        <nav class="nav flex-column gap-1">
+
+            <a href="{{ route('manager.dashboard') }}"
+               class="nav-link {{ request()->routeIs('manager.dashboard')?'active':'' }}">Dashboard</a>
+
+            <a href="{{ route('manager.products.index') }}"
+               class="nav-link {{ request()->routeIs('manager.products.*')?'active':'' }}">Products</a>
+
+            <a href="{{ route('manager.categories.index') }}"
+               class="nav-link {{ request()->routeIs('manager.categories.*')?'active':'' }}">Categories</a>
+
+            <a href="{{ route('manager.suppliers.index') }}"
+               class="nav-link {{ request()->routeIs('manager.suppliers.*')?'active':'' }}">Suppliers</a>
+
+            <a href="{{ route('manager.purchases.index') }}"
+               class="nav-link {{ request()->routeIs('manager.purchases.*')?'active':'' }}">Purchases</a>
+
+            <a href="{{ route('manager.sales.index') }}"
+               class="nav-link {{ request()->routeIs('manager.sales.*')?'active':'' }}">Sales</a>
+
+            <a href="{{ route('reports.purchases') }}"
+               class="nav-link {{ request()->routeIs('reports.*')?'active':'' }}">Reports</a>
+
         </nav>
-        <hr>
-        <small class="text-muted">Sales creation via POS (Cashiers & Admins only)</small>
+
+        <div class="mt-auto small opacity-75 pt-4">
+            POS handled by Cashiers/Admins
+        </div>
+
     </aside>
-    <div class="modal fade" id="managerReceiptModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Receipt</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+
+
+    <!-- MAIN -->
+    <main class="flex-fill p-4">
+
+        <!-- TOP NAVBAR -->
+        <div class="topbar d-flex justify-content-between align-items-center shadow-sm">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <!-- MOBILE MENU -->
+                <button class="btn btn-light d-md-none" onclick="toggleSidebar()">
+                    ☰
+                </button>
+
+                <div>
+                    <h5 class="mb-0 fw-bold">Manager Dashboard</h5>
+                    <small class="text-muted">
+                        Updated <span id="lastUpdated">{{ now()->diffForHumans() }}</span>
+                    </small>
                 </div>
-                <div class="modal-body" id="managerReceiptModalBody">
-                    <div class="text-center text-muted">Loading...</div>
+
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+
+                <!-- DARK MODE -->
+                <button class="btn btn-outline-secondary btn-sm" onclick="toggleDarkMode()">
+                    🌙
+                </button>
+
+                <!-- NOTIFICATIONS -->
+                <button class="btn btn-outline-secondary btn-sm position-relative">
+                    🔔 <span class="notif-dot"></span>
+                </button>
+
+                <!-- PROFILE -->
+                <div class="fw-semibold">
+                    {{ auth()->user()->name ?? 'Manager' }}
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="managerReceiptPrintBtn">Print</button>
+
+                <!-- LOGOUT -->
+                <form action="{{ route('logout') }}" method="POST" class="m-0">
+                    @csrf
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="fa fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+
+
+        <!-- KPI -->
+        <div class="row g-4 mb-4">
+
+            <div class="col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="kpi-icon bg-primary"><i class="fa fa-box"></i></div>
+                            <div class="ms-3">
+                                <div class="text-muted small">Total Products</div>
+                                <div class="fs-4 fw-bold counter"
+                                     data-target="{{ $totalProducts??0 }}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="kpi-icon bg-warning"><i class="fa fa-exclamation-triangle"></i></div>
+                            <div class="ms-3">
+                                <div class="text-muted small">Low Stock</div>
+                                <div class="fs-4 fw-bold counter"
+                                     data-target="{{ isset($lowStock)?count($lowStock):0 }}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="kpi-icon bg-success"><i class="fa fa-truck"></i></div>
+                            <div class="ms-3">
+                                <div class="text-muted small">Restocks</div>
+                                <div class="fs-4 fw-bold counter"
+                                     data-target="{{ isset($recentRestocks)?count($recentRestocks):0 }}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="kpi-card">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="kpi-icon bg-info"><i class="fa fa-handshake"></i></div>
+                            <div class="ms-3">
+                                <div class="text-muted small">Suppliers</div>
+                                <div class="fs-4 fw-bold counter"
+                                     data-target="{{ isset($supplierSpend)?count($supplierSpend):0 }}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- CHART -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Sales Trend (Last 7 Days)</h5>
+                <div style="height:320px">
+                    <canvas id="salesChart"
+                        data-labels='@json($salesTrendLabels ?? [])'
+                        data-values='@json($salesTrendData ?? [])'>
+                    </canvas>
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- manager JS loaded externally for maintainability --}}
-
-    <!-- Main content area that will be updated when manager menu items are clicked -->
-    <style>
-    /* Show manager sections by default so all content appears on the dashboard */
-    #managerMainContent .manager-section { display: block; }
-    /* hide the placeholder since sections are visible */
-    #managerMainContent .manager-placeholder { display: none; }
-    #managerMainContent .manager-placeholder { padding: 3rem; text-align: center; color: #6c757d; }
-    </style>
-
-    <!-- Main content -->
-    <main class="flex-fill p-3 overflow-auto">
-        <!-- Topbar for small screens -->
-        <div class="d-flex align-items-center mb-3 d-md-none">
-            <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#managerDrawer" aria-controls="managerDrawer">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <h5 class="mb-0">Manager Dashboard</h5>
-        </div>
-
-        <div class="container-fluid" id="managerMainContent">
-            <div class="row g-3 mb-3">
-                <div class="col-12 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Manager Dashboard</h4>
-                    <small class="text-muted">Last updated: {{ now()->diffForHumans() }}</small>
-                </div>
-            </div>
-
-            <!-- KPI Row -->
-            <div class="row g-3">
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-primary"><i class="fa fa-box"></i></div>
-                            <div>
-                                <div class="small-muted">Total products</div>
-                                <div class="h3 mb-0">{{ $totalProducts ?? 0 }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-warning"><i class="fa fa-exclamation-triangle"></i></div>
-                            <div>
-                                <div class="small-muted">Low stock</div>
-                                <div class="h3 mb-0">{{ count($lowStock ?? []) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-success"><i class="fa fa-truck"></i></div>
-                            <div>
-                                <div class="small-muted">Recent restocks</div>
-                                <div class="h3 mb-0">{{ count($recentRestocks ?? []) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-lg-3">
-                    <div class="card p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 display-6 text-info"><i class="fa fa-handshake"></i></div>
-                            <div>
-                                <div class="small-muted">Top suppliers</div>
-                                <div class="h3 mb-0">{{ count($supplierSpend ?? []) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Clickable quick-cards (moved up so they appear beside the sidebar) -->
-            <div class="row g-3 mt-3">
-                <div class="col-6 col-md-3">
-                    <a href="{{ Route::has('manager.sales.index') ? route('manager.sales.index') : '#' }}" class="text-decoration-none">
-                        <div class="card bg-primary text-white p-3 h-100">
-                            <h6 class="mb-1">Sales</h6>
-                            <div class="display-6">{{ $totalSales ?? 0 }}</div>
-                            <div class="small">View sales</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="{{ Route::has('manager.purchases.index') ? route('manager.purchases.index') : '#' }}" class="text-decoration-none">
-                        <div class="card bg-success text-white p-3 h-100">
-                            <h6 class="mb-1">Purchases</h6>
-                            <div class="display-6">{{ $totalPurchases ?? 0 }}</div>
-                            <div class="small">Manage purchases</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="{{ Route::has('manager.products.index') ? route('manager.products.index') : '#' }}" class="text-decoration-none">
-                        <div class="card bg-info text-white p-3 h-100">
-                            <h6 class="mb-1">Products</h6>
-                            <div class="display-6">{{ $totalProducts ?? 0 }}</div>
-                            <div class="small">Manage products</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-3">
-                    <a href="{{ Route::has('manager.suppliers.index') ? route('manager.suppliers.index') : '#' }}" class="text-decoration-none">
-                        <div class="card bg-warning text-dark p-3 h-100">
-                            <h6 class="mb-1">Suppliers</h6>
-                            <div class="display-6">{{ $totalSuppliers ?? 0 }}</div>
-                            <div class="small">Manage suppliers</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Main grid: chart + side column -->
-            <div class="row g-3 mt-3">
-                <div class="col-lg-8">
-                    <div class="card p-3 h-100">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="mb-0">Sales (last 7 days)</h5>
-                            <div class="small-muted">Trend</div>
-                        </div>
-                        <div style="height:320px;">
-                            <canvas id="salesChart" style="width:100%;height:100%;" data-labels='@json($salesTrendLabels ?? [])' data-values='@json($salesTrendData ?? [])'></canvas>
-                        </div>
-                        <hr>
-                        <h6 class="mb-2">Recent Purchases</h6>
-                        @include('partials.transactions-table', ['rows' => $recentPurchases])
-                    </div>
-                </div>
-
-                <div class="col-lg-4">
-                    <div class="card p-3 mb-3">
-                        <h6 class="mb-2">Quick Actions</h6>
-                        <div class="d-grid gap-2">
-                            <a href="{{ route('manager.products.create') }}" class="btn btn-outline-primary">Add product</a>
-                            <a href="{{ route('manager.purchases.create') }}" class="btn btn-primary">Create Purchase (Restock)</a>
-                            <a href="{{ route('manager.suppliers.index') }}" class="btn btn-outline-secondary">Manage Suppliers</a>
-                        </div>
-                    </div>
-
-                    <div class="card p-3 mb-3">
-                        <h6 class="mb-2">Low stock items</h6>
-                        @if(count($lowStock) === 0)
-                            <p class="text-muted">No low stock items.</p>
-                        @else
-                            <ul class="list-group list-group-flush">
-                                @foreach($lowStock as $p)
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="fw-bold">{{ data_get($p, 'name', data_get($p, 'product_name', 'n/a')) }}</div>
-                                            <small class="text-muted">{{ data_get($p, $stockColumn, 'n/a') }} in stock</small>
-                                        </div>
-                                        <a href="{{ route('manager.purchases.create') }}?product_id={{ data_get($p, 'id') }}" class="btn btn-sm btn-primary">Restock</a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </div>
-
-                    <div class="card p-3">
-                        <h6 class="mb-2">Top Suppliers</h6>
-                        @if(($supplierSpend ?? collect())->count() === 0)
-                            <p class="text-muted">No supplier spend yet.</p>
-                        @else
-                            <div class="table-responsive">
-                                <table class="table table-sm mb-0">
-                                    <tbody>
-                                        @foreach($supplierSpend as $row)
-                                            <tr>
-                                                <td>{{ $row->supplier_name ?? 'Unknown' }}</td>
-                                                <td class="text-end">{{ format_currency($row->total_spend ?? 0) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div> <!-- .container-fluid -->
     </main>
-</div> <!-- .dashboard-app -->
-
-@push('scripts')
-<script>
-// Intercept clicks inside the manager drawer and load content via AJAX into #managerMainContent
-(function(){
-    const drawer = document.getElementById('managerDrawer');
-    const links = document.getElementById('managerDrawerLinks');
-    const drawerContent = document.getElementById('managerDrawerContent');
-    if (! links || ! drawerContent) return;
-
-    links.addEventListener('click', function(e){
-        const a = e.target.closest && e.target.closest('a');
-        if (! a) return;
-        const href = a.getAttribute('href');
-        // only intercept local same-origin links and those that are not anchors
-        if (! href || href.indexOf(location.origin) === 0 || href.startsWith('/')) {
-            // avoid intercepting links that are JavaScript or mailto
-            if (href.startsWith('mailto:') || href.startsWith('javascript:')) return;
-            e.preventDefault();
-
-            // If link has data-section or hash, show that drawer section
-            const section = a.dataset.section || (href && href.startsWith('#') ? href.replace('#','') : null);
-            if (section) {
-                // show drawer section (support 'section-overview' -> 'drawer-section-overview')
-                const targetId = document.getElementById(section) ? section : ('drawer-' + section);
-                if (targetId && document.getElementById(targetId)) {
-                    // hide others
-                    drawerContent.querySelectorAll('.drawer-section').forEach(s => s.style.display = 'none');
-                    document.getElementById(targetId).style.display = '';
-                    return;
-                }
-            }
-
-            // otherwise fetch into drawerContent
-            fetch(href, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, credentials: 'same-origin' })
-                .then(r => {
-                    if (! r.ok) throw new Error('Failed to load');
-                    return r.text();
-                })
-                .then(html => {
-                    try {
-                        drawerContent.innerHTML = html;
-                    } catch (err) {
-                        console.error('Inject error', err);
-                        location.href = href; // fallback
-                    }
-                }).catch(err => {
-                    console.error(err);
-                    // fallback: navigate
-                    location.href = href;
-                });
-        }
-    });
-})();
-</script>
-@endpush
+</div>
 
 @endsection
 
+
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ asset('js/manager-dashboard.js') }}"></script>
+
+<script>
+
+/* MOBILE SIDEBAR */
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('show');
+}
+
+/* DARK MODE */
+function toggleDarkMode(){
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode',
+        document.body.classList.contains('dark-mode'));
+}
+if(localStorage.getItem('darkMode')==='true'){
+    document.body.classList.add('dark-mode');
+}
+
+/* COUNTERS */
+function animateCounters(){
+    document.querySelectorAll('.counter').forEach(el=>{
+        let target=+el.dataset.target,cur=0,inc=target/40;
+        function update(){
+            cur+=inc;
+            if(cur<target){
+                el.innerText=Math.floor(cur);
+                requestAnimationFrame(update);
+            } else el.innerText=target;
+        }
+        update();
+    });
+}
+animateCounters();
+
+/* CHART */
+const ctx=document.getElementById('salesChart');
+if(ctx){
+    const labels=JSON.parse(ctx.dataset.labels||'[]');
+    const values=JSON.parse(ctx.dataset.values||'[]');
+
+    new Chart(ctx,{
+        type:'line',
+        data:{labels:labels,datasets:[{data:values,fill:true,tension:.35}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+    });
+}
+
+</script>
 @endpush

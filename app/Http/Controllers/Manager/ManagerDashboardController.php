@@ -7,13 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Sale;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Supplier;
 
 class ManagerDashboardController extends Controller
 {
     public function index(Request $request)
     {
         // total products
-        $totalProducts = Schema::hasTable('products') ? DB::table('products')->count() : 0;
+        $totalProducts = Schema::hasTable('products') 
+            ? DB::table('products')->count() 
+            : 0;
 
         // detect stock column
         $stockColumn = null;
@@ -24,13 +29,16 @@ class ManagerDashboardController extends Controller
         }
 
         // low stock products
-        $lowStock = [];
+        $lowStock = collect();
         if ($stockColumn) {
-            $lowStock = DB::table('products')->where($stockColumn, '<=', 5)->limit(10)->get();
+            $lowStock = DB::table('products')
+                ->where($stockColumn, '<=', 5)
+                ->limit(10)
+                ->get();
         }
 
         // chart: last 7 days sales
-        $chart = [];
+        $chart = collect();
         if (Schema::hasTable('sales')) {
             $chart = Sale::selectRaw("DATE(created_at) as day, COALESCE(SUM(total),0) as amount")
                 ->where('created_at', '>=', now()->subDays(6))
@@ -40,8 +48,8 @@ class ManagerDashboardController extends Controller
                 ->pluck('amount', 'day');
         }
 
-        // recent restocks from purchases table
-        $recentRestocks = [];
+        // recent restocks
+        $recentRestocks = collect();
         if (Schema::hasTable('purchases')) {
             $recentRestocks = DB::table('purchases')
                 ->leftJoin('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
@@ -52,18 +60,15 @@ class ManagerDashboardController extends Controller
         }
 
         // supplier spend (top 5)
-        $supplierSpend = [];
+        $supplierSpend = collect();
         if (Schema::hasTable('purchases') && Schema::hasTable('suppliers')) {
             $supplierSpend = DB::table('purchases')
-                ->select('supplier_id', DB::raw('SUM(total) as total_spend'))
-                ->groupBy('supplier_id')
+                ->leftJoin('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
+                ->select('supplier_id', 'suppliers.name as supplier_name', DB::raw('SUM(total) as total_spend'))
+                ->groupBy('supplier_id', 'suppliers.name')
                 ->orderByDesc('total_spend')
                 ->limit(5)
-                ->get()
-                ->map(function($row){
-                    $row->supplier_name = DB::table('suppliers')->where('id', $row->supplier_id)->value('name');
-                    return $row;
-                });
+                ->get();
         }
 
         return view('manager.dashboard', compact(
@@ -74,5 +79,39 @@ class ManagerDashboardController extends Controller
             'stockColumn',
             'chart'
         ));
+    }
+
+    public function data()
+    {
+        return response()->json([
+            'totalProducts' => Schema::hasTable('products') ? Product::count() : 0,
+            'lowStock' => Schema::hasTable('products') ? Product::where('stock', '<', 10)->count() : 0,
+            'recentRestocks' => Schema::hasTable('purchases') ? Purchase::whereDate('created_at', '>=', now()->subDays(7))->count() : 0,
+            'topSuppliers' => Schema::hasTable('suppliers') ? Supplier::count() : 0,
+            'salesTrendLabels' => $this->getSalesTrendLabels(),
+            'salesTrendData' => $this->getSalesTrendData(),
+        ]);
+    }
+
+    private function getSalesTrendLabels()
+    {
+        if (!Schema::hasTable('sales')) return [];
+
+        return Sale::selectRaw("DATE(created_at) as day")
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('day');
+    }
+
+    private function getSalesTrendData()
+    {
+        if (!Schema::hasTable('sales')) return [];
+
+        return Sale::selectRaw("COALESCE(SUM(total),0) as amount, DATE(created_at) as day")
+            ->where('created_at', '>=', now()->subDays(6))
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('amount');
     }
 }

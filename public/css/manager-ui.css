@@ -141,6 +141,56 @@
     font-size: 0.85rem;
 }
 
+/* Global table styling across pages */
+.table-responsive {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    overflow: auto;
+}
+
+.table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+    padding: 0.85rem 0.95rem;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 0.85rem 0.95rem;
+    border-color: rgba(15, 23, 42, 0.08);
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: background-color .15s ease;
+}
+
+.table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: #fbfdff;
+}
+
+.table-sm thead th,
+.table-sm tbody td {
+    padding: 0.6rem 0.7rem;
+}
+
 /* Utility */
 .text-muted-2 {
     color: rgba(0, 0, 0, 0.55);

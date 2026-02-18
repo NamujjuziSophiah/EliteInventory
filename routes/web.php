@@ -19,6 +19,25 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BarcodeController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\Admin\SalesController as AdminSalesController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\UserLogController;
+use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Cashier\DashboardController as CashierDashboardController;
+use App\Http\Controllers\Cashier\SalesController as CashierSalesController;
+use App\Http\Controllers\CustomerCreditController;
+use App\Http\Controllers\POSController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Manager\PurchasesController;
+use App\Http\Controllers\Manager\SalesController as ManagerSalesController;
+use App\Http\Controllers\Manager\DashboardController as ManagerDashboardController;
 
 // Default root: show landing welcome page or auto-redirect authenticated users if enabled in settings
 use Illuminate\Support\Facades\Schema;
@@ -123,64 +142,62 @@ Route::post('password/reset', function (Request $request) {
 })->name('password.update');
 
 // Role-protected dashboard routes
-use App\Http\Controllers\POSController;
-use App\Http\Controllers\CustomerCreditController;
 
 Route::middleware(['auth'])->group(function () {
     // Admin
     Route::middleware(['ensure.role:admin'])->prefix('admin')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
     // Allow admins to open the manager-style dashboard for inspection without
     // changing manager middleware. This mounts the manager dashboard controller
     // under an admin-only URL so admins can preview the manager UI.
-    Route::get('manager', [\App\Http\Controllers\Manager\DashboardController::class, 'index'])->name('admin.manager.dashboard');
+    Route::get('manager', [ManagerDashboardController::class, 'index'])->name('admin.manager.dashboard');
 
     // Users management (list, soft-delete)
-    Route::get('users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users.index');
-    Route::get('users/create', [\App\Http\Controllers\Admin\UserManagementController::class, 'create'])->name('admin.users.create');
-    Route::post('users', [\App\Http\Controllers\Admin\UserManagementController::class, 'store'])->name('admin.users.store');
-    Route::get('users/{id}/edit', [\App\Http\Controllers\Admin\UserManagementController::class, 'edit'])->name('admin.users.edit');
-    Route::put('users/{id}', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('admin.users.update');
-    Route::delete('users/{id}', [\App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])->name('admin.users.destroy');
-    Route::post('users/{id}/restore', [\App\Http\Controllers\Admin\UserManagementController::class, 'restore'])->name('admin.users.restore');
+    Route::get('users', [UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::get('users/create', [UserManagementController::class, 'create'])->name('admin.users.create');
+    Route::post('users', [UserManagementController::class, 'store'])->name('admin.users.store');
+    Route::get('users/{id}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
+    Route::put('users/{id}', [UserManagementController::class, 'update'])->name('admin.users.update');
+    Route::delete('users/{id}', [UserManagementController::class, 'destroy'])->name('admin.users.destroy');
+    Route::post('users/{id}/restore', [UserManagementController::class, 'restore'])->name('admin.users.restore');
 
     // System settings
-    Route::get('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'edit'])->name('admin.settings.edit');
-    Route::post('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('admin.settings.update');
-    Route::post('settings/force-logout', [\App\Http\Controllers\Admin\SettingsController::class, 'forceLogout'])->name('admin.settings.force_logout');
+    Route::get('settings', [SettingsController::class, 'edit'])->name('admin.settings.edit');
+    Route::post('settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('settings/force-logout', [SettingsController::class, 'forceLogout'])->name('admin.settings.force_logout');
         // Audit logs
-        Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.audit.index');
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('admin.audit.index');
     // User-uploaded logs (simple upload/listing) — routing changed to allow owners access
     // (actual route definitions moved below to be accessible by authenticated owners as well)
         
         // Bulk restore users
-        Route::post('users/restore-bulk', [\App\Http\Controllers\Admin\UserManagementController::class, 'restoreBulk'])->name('admin.users.restore_bulk');
+        Route::post('users/restore-bulk', [UserManagementController::class, 'restoreBulk'])->name('admin.users.restore_bulk');
 
         // Reports
-        Route::get('reports', [\App\Http\Controllers\Admin\ReportsController::class, 'index'])->name('admin.reports.index');
-    Route::get('reports/series', [\App\Http\Controllers\Admin\ReportsController::class, 'series'])->name('admin.reports.series');
-        Route::get('reports/export', [\App\Http\Controllers\Admin\ReportsController::class, 'export'])->name('admin.reports.export');
+        Route::get('reports', [ReportsController::class, 'index'])->name('admin.reports.index');
+    Route::get('reports/series', [ReportsController::class, 'series'])->name('admin.reports.series');
+        Route::get('reports/export', [ReportsController::class, 'export'])->name('admin.reports.export');
             // Barcode image
-                Route::get('products/{product}/barcode.png', [\App\Http\Controllers\Admin\BarcodeController::class, 'image'])->name('admin.products.barcode');
-                Route::get('products/labels/print', [\App\Http\Controllers\Admin\BarcodeController::class, 'batch'])->name('admin.products.labels.print');
+                Route::get('products/{product}/barcode.png', [BarcodeController::class, 'image'])->name('admin.products.barcode');
+                Route::get('products/labels/print', [BarcodeController::class, 'batch'])->name('admin.products.labels.print');
         
         // Admin product management (reuse ProductController but mounted under /admin)
-        Route::resource('products', \App\Http\Controllers\ProductController::class)->names('admin.products');
+        Route::resource('products', ProductController::class)->names('admin.products');
     // Admin categories
-    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
+    Route::resource('categories', AdminCategoryController::class)->names('admin.categories');
     // Admin sales reporting and management
-    Route::get('sales/export', [\App\Http\Controllers\Admin\SalesController::class, 'export'])->name('admin.sales.export');
-    Route::resource('sales', \App\Http\Controllers\Admin\SalesController::class)->names('admin.sales');
+    Route::get('sales/export', [AdminSalesController::class, 'export'])->name('admin.sales.export');
+    Route::resource('sales', AdminSalesController::class)->names('admin.sales');
         // Admin customers and suppliers
-        Route::resource('customers', \App\Http\Controllers\Admin\CustomerController::class)->names('admin.customers');
-    Route::get('customers/trashed', [\App\Http\Controllers\Admin\CustomerController::class, 'trashed'])->name('admin.customers.trashed');
-    Route::post('customers/{id}/restore', [\App\Http\Controllers\Admin\CustomerController::class, 'restore'])->name('admin.customers.restore');
-    Route::post('customers/restore-bulk', [\App\Http\Controllers\Admin\CustomerController::class, 'restoreBulk'])->name('admin.customers.restore_bulk');
-        Route::resource('suppliers', \App\Http\Controllers\Admin\SupplierController::class)->names('admin.suppliers');
-    Route::get('suppliers/trashed', [\App\Http\Controllers\Admin\SupplierController::class, 'trashed'])->name('admin.suppliers.trashed');
-    Route::post('suppliers/{id}/restore', [\App\Http\Controllers\Admin\SupplierController::class, 'restore'])->name('admin.suppliers.restore');
-    Route::post('suppliers/restore-bulk', [\App\Http\Controllers\Admin\SupplierController::class, 'restoreBulk'])->name('admin.suppliers.restore_bulk');
+        Route::resource('customers', CustomerController::class)->names('admin.customers');
+    Route::get('customers/trashed', [CustomerController::class, 'trashed'])->name('admin.customers.trashed');
+    Route::post('customers/{id}/restore', [CustomerController::class, 'restore'])->name('admin.customers.restore');
+    Route::post('customers/restore-bulk', [CustomerController::class, 'restoreBulk'])->name('admin.customers.restore_bulk');
+        Route::resource('suppliers', AdminSupplierController::class)->names('admin.suppliers');
+    Route::get('suppliers/trashed', [AdminSupplierController::class, 'trashed'])->name('admin.suppliers.trashed');
+    Route::post('suppliers/{id}/restore', [AdminSupplierController::class, 'restore'])->name('admin.suppliers.restore');
+    Route::post('suppliers/restore-bulk', [AdminSupplierController::class, 'restoreBulk'])->name('admin.suppliers.restore_bulk');
         // NOTE: purchase reports are served via a single canonical route (see below)
     });
 
@@ -191,32 +208,32 @@ Route::middleware(['auth'])->group(function () {
 
     // Manager
     Route::middleware(['ensure.role:manager'])->prefix('manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Manager\DashboardController::class, 'index'])->name('manager.dashboard');
+        Route::get('/', [ManagerDashboardController::class, 'index'])->name('manager.dashboard');
     // Manager sales (read-only), purchases and reports (limited)
     // Managers should NOT create sales; only view them. Cashiers handle live POS checkout.
-    Route::resource('sales', \App\Http\Controllers\Manager\SalesController::class)->only(['index','show'])->names('manager.sales');
-        Route::resource('purchases', \App\Http\Controllers\Manager\PurchasesController::class)->names('manager.purchases');
+    Route::resource('sales', ManagerSalesController::class)->only(['index','show'])->names('manager.sales');
+        Route::resource('purchases', PurchasesController::class)->names('manager.purchases');
     // Manager report endpoints (limited): allow managers to manage categories, suppliers and view purchase reports and monitor cashiers
     // Managers can manage categories and suppliers (limited admin-equivalent pages under manager prefix)
-    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('manager.categories');
-    Route::resource('suppliers', \App\Http\Controllers\Admin\SupplierController::class)->names('manager.suppliers');
+    Route::resource('categories', AdminCategoryController::class)->names('manager.categories');
+    Route::resource('suppliers', AdminSupplierController::class)->names('manager.suppliers');
 
     // Allow managers to view purchase reports (read-only)
     // (manager links updated to use the canonical route name)
 
     // Cashier monitoring / audit view for managers (read-only)
-    Route::get('cashiers/monitor', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('manager.cashiers.monitor');
+    Route::get('cashiers/monitor', [AuditLogController::class, 'index'])->name('manager.cashiers.monitor');
     });
 
     // POS endpoints (cashiers and admins)
     Route::middleware(['ensure.role:cashier|admin'])->prefix('cashier')->group(function () {
         Route::get('/', [POSController::class, 'index'])->name('cashier.pos');
         // Cashier dashboard (retail-friendly) - shows today's sales, quick links and low-stock
-        Route::get('dashboard', [\App\Http\Controllers\Cashier\DashboardController::class, 'index'])->name('cashier.dashboard');
+        Route::get('dashboard', [CashierDashboardController::class, 'index'])->name('cashier.dashboard');
     // Sales history and receipt reprint for cashiers
-    Route::get('sales', [\App\Http\Controllers\Cashier\SalesController::class, 'index'])->name('cashier.sales.index');
-    Route::get('sales/{id}', [\App\Http\Controllers\Cashier\SalesController::class, 'show'])->name('cashier.sales.show');
-    Route::delete('sales/{id}', [\App\Http\Controllers\Cashier\SalesController::class, 'destroy'])->name('cashier.sales.destroy');
+    Route::get('sales', [CashierSalesController::class, 'index'])->name('cashier.sales.index');
+    Route::get('sales/{id}', [CashierSalesController::class, 'show'])->name('cashier.sales.show');
+    Route::delete('sales/{id}', [CashierSalesController::class, 'destroy'])->name('cashier.sales.destroy');
         Route::post('/scan', [POSController::class, 'scan'])->name('cashier.scan');
     // product search by name/sku for UI autocomplete
     Route::post('/search', [POSController::class, 'search'])->name('cashier.search');
@@ -236,7 +253,6 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Product CRUD
-use App\Http\Controllers\ProductController;
 Route::middleware(['auth','ensure.role:manager'])->prefix('manager')->group(function(){
     // Name manager product routes under the "manager.products.*" namespace so
     // views that call route('manager.products.index') resolve correctly.
@@ -253,13 +269,13 @@ Route::middleware(['auth','ensure.role:admin|manager'])->group(function () {
 // Backwards-compatibility: register top-level `categories`, `suppliers`, and `purchases`
 // resources so legacy views that expect unprefixed route names keep working.
 Route::middleware(['auth','ensure.role:admin|manager'])->group(function () {
-    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->names('categories');
-    Route::resource('suppliers', \App\Http\Controllers\Admin\SupplierController::class)->names('suppliers');
+    Route::resource('categories', AdminCategoryController::class)->names('categories');
+    Route::resource('suppliers', AdminSupplierController::class)->names('suppliers');
     // Purchase endpoints (create/list) used by manager flows — provide top-level names
-    Route::resource('purchases', \App\Http\Controllers\Manager\PurchasesController::class)->names('purchases');
+    Route::resource('purchases', PurchasesController::class)->names('purchases');
     // Canonical purchase reports route (single URL for both admins and managers).
     // Controller will gate view logic based on role (admins see full reports, managers limited view).
-    Route::get('reports/purchases', [\App\Http\Controllers\Admin\ReportsController::class, 'purchases'])
+    Route::get('reports/purchases', [ReportsController::class, 'purchases'])
         ->name('reports.purchases');
 });
 
@@ -267,9 +283,9 @@ Route::middleware(['auth','ensure.role:admin|manager'])->group(function () {
 // admins will see all logs. Routes are prefixed with `admin/` path to keep existing
 // route names and links (e.g. route('admin.user_logs.index')).
 Route::middleware(['auth'])->group(function () {
-    Route::get('admin/user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'index'])->name('admin.user_logs.index');
-    Route::post('admin/user-logs', [\App\Http\Controllers\Admin\UserLogController::class, 'store'])->name('admin.user_logs.store');
-    Route::get('admin/user-logs/{id}/download', [\App\Http\Controllers\Admin\UserLogController::class, 'download'])->name('admin.user_logs.download');
+    Route::get('admin/user-logs', [UserLogController::class, 'index'])->name('admin.user_logs.index');
+    Route::post('admin/user-logs', [UserLogController::class, 'store'])->name('admin.user_logs.store');
+    Route::get('admin/user-logs/{id}/download', [UserLogController::class, 'download'])->name('admin.user_logs.download');
 });
 
 // Lightweight diagnostic route to confirm middleware aliases resolve correctly.
@@ -316,3 +332,6 @@ Route::middleware(['auth','ensure.role:admin'])->get('diagnostics/health', funct
 
 // AJAX endpoints for small UI helpers (authenticated)
 Route::middleware(['auth'])->get('ajax/products/{id}', [ProductController::class, 'ajaxGet'])->name('ajax.products.get');
+Route::middleware(['auth','ensure.role:manager|admin'])->get('/manager/dashboard/data',
+    [ManagerDashboardController::class, 'data']
+)->name('manager.dashboard.data');
