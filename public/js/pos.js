@@ -31,31 +31,29 @@
 
         function renderCart() {
             const rawTotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            const perItemDiscountTotal = cart.reduce((s, i) => s + (parseFloat(i.discount || 0) || 0), 0);
             const overallDiscount = parseFloat(document.getElementById('cartDiscount')?.value || 0) || 0;
-            const totalAfter = Math.max(0, rawTotal - perItemDiscountTotal - overallDiscount);
+            const totalAfter = Math.max(0, rawTotal - overallDiscount);
 
             const cartList = document.getElementById('cartList');
             if (!cartList) return;
             if (cart.length === 0) {
                 cartList.innerHTML = '<div class="text-muted">No items</div>';
             } else {
-                let html = '<table class="table table-sm mb-0"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Discount</th><th>Line</th><th></th></tr></thead><tbody>';
+                let html = '<table class="table table-sm mb-0"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Line</th><th></th></tr></thead><tbody>';
                 cart.forEach((it, idx) => {
-                    const line = Math.max(0, (it.price * it.qty) - (parseFloat(it.discount || 0) || 0));
-                    html += `<tr><td>${it.name}</td><td><div class="btn-group btn-group-sm" role="group"><button class="btn btn-outline-secondary" data-idx="${idx}" data-delta="-1">-</button><span class="btn btn-light">${it.qty}</span><button class="btn btn-outline-secondary" data-idx="${idx}" data-delta="1">+</button></div></td><td>${formatCurrencySafe(it.price)}</td><td><input type="number" min="0" step="0.01" value="${it.discount || 0}" data-discount-idx="${idx}" style="width:90px" class="form-control form-control-sm"/></td><td>${formatCurrencySafe(line)}</td><td><button class="btn btn-sm btn-danger" data-remove-idx="${idx}">x</button></td></tr>`;
+                    const line = Math.max(0, (it.price * it.qty));
+                    html += `<tr><td>${it.name}</td><td><div class="btn-group btn-group-sm" role="group"><button class="btn btn-outline-secondary" data-idx="${idx}" data-delta="-1">-</button><span class="btn btn-light">${it.qty}</span><button class="btn btn-outline-secondary" data-idx="${idx}" data-delta="1">+</button></div></td><td>${formatCurrencySafe(it.price)}</td><td>${formatCurrencySafe(line)}</td><td><button class="btn btn-sm btn-danger" data-remove-idx="${idx}">x</button></td></tr>`;
                 });
                 html += '</tbody></table>';
                 cartList.innerHTML = html;
 
                 // wire dynamic controls (delegated)
                 cartList.querySelectorAll('[data-idx][data-delta]').forEach(btn => btn.addEventListener('click', function () { changeQty(parseInt(this.dataset.idx, 10), parseInt(this.dataset.delta, 10)); }));
-                cartList.querySelectorAll('[data-discount-idx]').forEach(inp => inp.addEventListener('change', function () { updateDiscount(parseInt(this.dataset.discountIdx, 10), this.value); }));
                 cartList.querySelectorAll('[data-remove-idx]').forEach(btn => btn.addEventListener('click', function () { removeItem(parseInt(this.dataset.removeIdx, 10)); }));
             }
 
             const countEl = document.getElementById('cartCount'); if (countEl) countEl.innerText = cart.reduce((s, i) => s + i.qty, 0);
-            const totalEl = document.getElementById('cartTotal'); if (totalEl) totalEl.innerText = formatCurrencySafe(cart.reduce((s, i) => s + (i.price * i.qty), 0) - cart.reduce((s, i) => s + (parseFloat(i.discount || 0) || 0), 0) - (parseFloat(document.getElementById('cartDiscount')?.value || 0) || 0));
+            const totalEl = document.getElementById('cartTotal'); if (totalEl) totalEl.innerText = formatCurrencySafe(cart.reduce((s, i) => s + (i.price * i.qty), 0) - (parseFloat(document.getElementById('cartDiscount')?.value || 0) || 0));
         }
 
         function changeQty(index, delta) {
@@ -64,7 +62,6 @@
             if (it.qty === 0) cart.splice(index, 1);
             renderCart();
         }
-        function updateDiscount(index, value) { const it = cart[index]; if (!it) return; it.discount = parseFloat(value) || 0; renderCart(); }
         function removeItem(index) { cart.splice(index, 1); renderCart(); }
 
         // render product(s)
@@ -86,7 +83,7 @@
                 existing.qty += qty;
             } else {
                 if (available < qty) return alert('Insufficient stock');
-                cart.push({ product_id: product.id, name: product.name ?? product.title, price: parseFloat(product.selling_price ?? product.price ?? 0), qty: qty, discount: 0 });
+                cart.push({ product_id: product.id, name: product.name ?? product.title, price: parseFloat(product.selling_price ?? product.price ?? 0), qty: qty });
             }
             renderCart();
         }
@@ -104,14 +101,8 @@
                 btn.addEventListener('click', () => {
                     let usedModal = false;
                     if (typeof openQtyModal === 'function') {
-                        usedModal = openQtyModal(p, p.available, 1, function (qty, discount) {
-                            // discount is optional per-line discount
+                        usedModal = openQtyModal(p, p.available, 1, function (qty) {
                             addToCart(p, p.available, qty);
-                            // apply discount if provided and cart entry exists
-                            if (discount && discount > 0) {
-                                const existing = cart.find(c => c.product_id == p.id);
-                                if (existing) { existing.discount = parseFloat(discount) || 0; }
-                            }
                             renderCart();
                         });
                     }
@@ -131,18 +122,15 @@
             const modalEl = document.getElementById('qtyModal');
             if (!modalEl) return false;
             const qtyInput = document.getElementById('qtyModalQuantity');
-            const discInput = document.getElementById('qtyModalDiscount');
             const confirmBtn = document.getElementById('qtyModalConfirm');
             const bs = new bootstrap.Modal(modalEl);
             qtyInput.value = defaultQty || 1;
             qtyInput.min = 1;
-            discInput.value = 0;
             function onConfirm() {
                 let q = parseInt(qtyInput.value, 10) || 1;
                 q = Math.max(1, q);
                 if (available !== undefined && q > available) return alert('Insufficient stock');
-                let d = parseFloat(discInput.value) || 0;
-                try { cb(q, d); } catch (e) { console.error(e); }
+                try { cb(q); } catch (e) { console.error(e); }
                 confirmBtn.removeEventListener('click', onConfirm);
                 bs.hide();
             }
@@ -235,9 +223,8 @@
         const confirmSplit = document.getElementById('confirmSplit');
         if (splitBtn && splitModalEl && splitModal) splitBtn.addEventListener('click', function () {
             const rawTotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            const perItemDiscountTotal = cart.reduce((s, i) => s + (parseFloat(i.discount || 0) || 0), 0);
             const overallDiscount = parseFloat(document.getElementById('cartDiscount')?.value || 0) || 0;
-            const totalAfter = Math.max(0, rawTotal - perItemDiscountTotal - overallDiscount);
+            const totalAfter = Math.max(0, rawTotal - overallDiscount);
             splitModalEl.dataset.total = totalAfter;
             if (splitTotalEl) splitTotalEl.innerText = formatCurrencySafe(totalAfter);
             if (splitCash) splitCash.value = totalAfter.toFixed(2);
