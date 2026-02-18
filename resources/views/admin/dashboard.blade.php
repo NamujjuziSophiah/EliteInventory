@@ -179,7 +179,7 @@
         <!-- ===== CHARTS ===== -->
         <div class="row g-3 mt-2">
 
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="card p-3">
                     <h5>Sales last 7 days</h5>
                     <div style="height:220px">
@@ -190,15 +190,76 @@
                 </div>
             </div>
 
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="card p-3">
-                    <h5>Low stock</h5>
+                    <h5>Low stock (below 5)</h5>
                     <div style="height:220px">
                         <canvas id="lowStockDoughnut"
                             data-labels='@json(collect($lowStock ?? [])->pluck("name"))'
                             data-values='@json(collect($lowStock ?? [])->pluck($productQuantityColumn ?? "stock"))'>
                         </canvas>
                     </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card p-3">
+                    <h5>Overstock (100 and above)</h5>
+                    <div style="height:220px">
+                        <canvas id="overStockDoughnut"
+                            data-labels='@json(collect($overStock ?? [])->pluck("name"))'
+                            data-values='@json(collect($overStock ?? [])->pluck($productQuantityColumn ?? "stock"))'>
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== STOCK LISTS ===== -->
+        <div class="row g-3 mt-2">
+
+            <div class="col-lg-6">
+                <div class="card p-3">
+                    <h5>Products to restock (below 5)</h5>
+                    @php
+                        if (is_array($lowStock ?? null)) {
+                            $topLowStock = array_slice($lowStock, 0, 12);
+                        } elseif (($lowStock ?? null) instanceof \Illuminate\Support\Collection) {
+                            $topLowStock = $lowStock->slice(0,12)->all();
+                        } else {
+                            $topLowStock = [];
+                        }
+                    @endphp
+                    <ul class="list-unstyled mt-2 mb-0">
+                        @forelse($topLowStock as $p)
+                            <li class="py-1">{{ data_get($p, 'name', 'Unnamed') }} — {{ $productQuantityColumn ? data_get($p, $productQuantityColumn, '0') : data_get($p, 'stock', '0') }}</li>
+                        @empty
+                            <li class="text-muted">No low-stock products</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card p-3">
+                    <h5>Overstocked products (100 and above)</h5>
+                    @php
+                        if (is_array($overStock ?? null)) {
+                            $topOverStock = array_slice($overStock, 0, 12);
+                        } elseif (($overStock ?? null) instanceof \Illuminate\Support\Collection) {
+                            $topOverStock = $overStock->slice(0,12)->all();
+                        } else {
+                            $topOverStock = [];
+                        }
+                    @endphp
+                    <ul class="list-unstyled mt-2 mb-0">
+                        @forelse($topOverStock as $p)
+                            <li class="py-1">{{ data_get($p, 'name', 'Unnamed') }} — {{ $productQuantityColumn ? data_get($p, $productQuantityColumn, '0') : data_get($p, 'stock', '0') }}</li>
+                        @empty
+                            <li class="text-muted">No overstock products</li>
+                        @endforelse
+                    </ul>
                 </div>
             </div>
 
@@ -286,6 +347,7 @@ function makeChart(id,type){
 document.addEventListener('DOMContentLoaded',()=>{
     makeChart('salesPie','pie');
     makeChart('lowStockDoughnut','doughnut');
+    makeChart('overStockDoughnut','doughnut');
 });
 </script>
 @endpush
