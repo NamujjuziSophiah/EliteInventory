@@ -33,9 +33,12 @@
         <h5 class="mb-3">Profit / Loss (trend)</h5>
 
         <div class="chart-wrap-lg">
-            <canvas id="profitChart" height="120"
-                data-labels='@json($profitLabels ?? [])'
-                data-values='@json($profitSeries ?? [])'></canvas>
+            <canvas
+                id="profitChart"
+                height="120"
+                data-labels='{{ json_encode($profitLabels ?? []) }}'
+                data-values='{{ json_encode($profitSeries ?? []) }}'
+            ></canvas>
         </div>
 
         <p class="small text-muted mt-2">
@@ -96,12 +99,13 @@
 
 @push('scripts')
 <script>
-(function () {
+const SERIES_URL = "{{ route('admin.reports.series') }}";
 
+(function () {
     const canvas = document.getElementById('profitChart');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const seriesUrl = @json((string) route('admin.reports.series'));
+    const seriesUrl = SERIES_URL;
 
     let labels = [];
     let values = [];
@@ -138,24 +142,21 @@
     if (!form) return;
 
     form.addEventListener('submit', async function (ev) {
-
         if (ev.submitter && ev.submitter.value === 'profit_loss') return;
-
         ev.preventDefault();
 
         const fd = new FormData(form);
         const params = new URLSearchParams(fd);
 
         try {
-            const res = await fetch(`${seriesUrl}?${params.toString()}`, {
+            const res = await fetch(seriesUrl + '?' + params.toString(), {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 }
             });
 
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             const json = await res.json();
 
             chart.data.labels = json.labels || [];
@@ -163,18 +164,15 @@
             chart.update();
 
             document.querySelectorAll('.js-export-form input[name="date_from"]')
-                .forEach(i => i.value = fd.get('date_from') || '');
+                .forEach(function(i) { i.value = fd.get('date_from') || ''; });
 
             document.querySelectorAll('.js-export-form input[name="date_to"]')
-                .forEach(i => i.value = fd.get('date_to') || '');
-
+                .forEach(function(i) { i.value = fd.get('date_to') || ''; });
         } catch (err) {
             console.error(err);
             alert('Could not load chart data.');
         }
-
     });
-
 })();
 </script>
 @endpush
