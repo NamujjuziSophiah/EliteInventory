@@ -88,13 +88,25 @@
     (function () {
         const canvas = document.getElementById('profitChart');
         if (!canvas) return;
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded.');
+            return;
+        }
 
-        // parse initial data from data-* attributes
-        const initialLabels = JSON.parse(canvas.getAttribute('data-labels') || '[]');
-        const initialValues = JSON.parse(canvas.getAttribute('data-values') || '[]');
+        const exportUrl = @json(route('admin.reports.export'));
+        const seriesUrl = @json(route('admin.reports.series'));
+
+        let initialLabels = [];
+        let initialValues = [];
+        try {
+            initialLabels = JSON.parse(canvas.getAttribute('data-labels') || '[]');
+            initialValues = JSON.parse(canvas.getAttribute('data-values') || '[]');
+        } catch (e) {
+            console.error('Invalid chart data attributes:', e);
+        }
 
         const ctx = canvas.getContext('2d');
-        const config = {
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: initialLabels,
@@ -121,20 +133,17 @@
                     y: { display: true, title: { display: true, text: 'Amount' } }
                 }
             }
-        };
+        });
 
-        const chart = new Chart(ctx, config);
-
-        // update export hidden inputs when range changes
         function setExportInputs(from, to) {
-            document.querySelectorAll('form[action="{{ route('admin.reports.export') }}"] input[name="date_from"]').forEach(i => i.value = from);
-            document.querySelectorAll('form[action="{{ route('admin.reports.export') }}"] input[name="date_to"]').forEach(i => i.value = to);
+            document.querySelectorAll('.js-export-form input[name="date_from"]').forEach(i => i.value = from);
+            document.querySelectorAll('.js-export-form input[name="date_to"]').forEach(i => i.value = to);
         }
 
         const form = document.getElementById('chartFilterForm');
         if (!form) return;
 
-        form.addEventListener('submit', function (ev) {
+        form.addEventListener('submit', async function (ev) {
             ev.preventDefault();
 
             const fd = new FormData(form);
@@ -142,10 +151,14 @@
             if (fd.get('date_from')) params.append('date_from', fd.get('date_from'));
             if (fd.get('date_to')) params.append('date_to', fd.get('date_to'));
 
-            // fetch time-series JSON from server
-            fetch('{{ route('admin.reports.series') }}?' + params.toString(), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-            }).then(r => r.json()).then(json => {
+            try {
+                const response = await fetch(seriesUrl + '?' + params.toString(), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+
+                const json = await response.json();
                 const labels = json.labels || [];
                 const values = json.values || [];
 
@@ -153,14 +166,13 @@
                 chart.data.datasets[0].data = values;
                 chart.update();
 
-                // update export inputs so CSVs reflect the currently selected range
                 const from = fd.get('date_from') || labels[0] || '';
                 const to = fd.get('date_to') || labels[labels.length - 1] || '';
                 setExportInputs(from, to);
-            }).catch(err => {
+            } catch (err) {
                 console.error('Failed to fetch series:', err);
                 alert('Could not load chart data. Please try again or reload the page.');
-            });
+            }
         });
     })();
 </script>
