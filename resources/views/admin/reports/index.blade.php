@@ -5,73 +5,84 @@
     <h1>Reports</h1>
 
     <div class="card p-3 mb-3">
-        <form method="GET" action="{{ route('admin.reports.export') }}">
+        <form id="chartFilterForm" class="js-export-form" method="GET" action="{{ route('admin.reports.export') }}">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label">From</label>
-                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') ?: now()->subDays(30)->toDateString() }}">
+                    <input type="date" name="date_from" class="form-control"
+                        value="{{ request('date_from') ?: now()->subDays(29)->toDateString() }}">
                 </div>
+
                 <div class="col-md-4">
                     <label class="form-label">To</label>
-                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') ?: now()->toDateString() }}">
+                    <input type="date" name="date_to" class="form-control"
+                        value="{{ request('date_to') ?: now()->toDateString() }}">
                 </div>
-                <div class="col-md-4">
-                    <button class="btn btn-primary">Export Profit &amp; Loss CSV</button>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                    <button type="submit" name="type" value="profit_loss" class="btn btn-outline-secondary">
+                        Export Profit/Loss CSV
+                    </button>
                 </div>
             </div>
         </form>
     </div>
 
-    {{-- Profit / Loss trend chart --}}
     <div class="card mb-3 p-3">
         <h5 class="mb-3">Profit / Loss (trend)</h5>
-        <div class="row g-2 align-items-end mb-3">
-            <div class="col-auto">
-                <form method="GET" action="{{ route('admin.reports.index') }}" id="chartFilterForm" class="row g-2 align-items-end">
-                    <div class="col-auto">
-                        <label class="form-label">From</label>
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') ?: now()->subDays(29)->toDateString() }}">
-                    </div>
-                    <div class="col-auto">
-                        <label class="form-label">To</label>
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') ?: now()->toDateString() }}">
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-primary">Filter Chart</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         <div class="chart-wrap-lg">
-            <canvas id="profitChart" height="120" 
-                data-labels='{{ json_encode($labels ?? []) }}'
-                data-values='{{ json_encode($profitSeries ?? []) }}'></canvas>
+            <canvas id="profitChart" height="120"
+                data-labels='@json($profitLabels ?? [])'
+                data-values='@json($profitSeries ?? [])'></canvas>
         </div>
-        <p class="small text-muted mt-2">Showing profit (sales &minus; COGS) per day for the selected range (default last 30 days).</p>
+
+        <p class="small text-muted mt-2">
+            Showing profit (sales &minus; COGS) per day for the selected range.
+        </p>
     </div>
 
     <div class="mb-3">
-        <form action="{{ route('admin.reports.export') }}" method="GET" style="display:inline">
-            <input type="hidden" name="date_from" value="{{ request('date_from') ?: now()->subDays(29)->toDateString() }}">
-            <input type="hidden" name="date_to" value="{{ request('date_to') ?: now()->toDateString() }}">
+
+        <form action="{{ route('admin.reports.export') }}" method="GET"
+              class="js-export-form" style="display:inline">
+
+            <input type="hidden" name="date_from"
+                value="{{ request('date_from') ?: now()->subDays(29)->toDateString() }}">
+
+            <input type="hidden" name="date_to"
+                value="{{ request('date_to') ?: now()->toDateString() }}">
+
             <input type="hidden" name="type" value="sales">
+
             <button class="btn btn-outline-primary">Export Sales CSV</button>
         </form>
 
         @if(($canExport ?? false) || (auth()->check() && (auth()->user()->role ?? null) === 'admin'))
-            <form action="{{ route('admin.reports.export') }}" method="GET" style="display:inline;margin-left:8px">
-                <input type="hidden" name="date_from" value="{{ request('date_from') ?: now()->subDays(29)->toDateString() }}">
-                <input type="hidden" name="date_to" value="{{ request('date_to') ?: now()->toDateString() }}">
+
+            <form action="{{ route('admin.reports.export') }}" method="GET"
+                  class="js-export-form"
+                  style="display:inline;margin-left:8px">
+
+                <input type="hidden" name="date_from"
+                    value="{{ request('date_from') ?: now()->subDays(29)->toDateString() }}">
+
+                <input type="hidden" name="date_to"
+                    value="{{ request('date_to') ?: now()->toDateString() }}">
+
                 <input type="hidden" name="type" value="purchases">
+
                 <button class="btn btn-outline-secondary">Export Purchases CSV</button>
             </form>
-        @else
-            <button class="btn btn-outline-secondary" disabled style="margin-left:8px">Export Purchases CSV (admins only)</button>
-        @endif
-    </div>
 
-    <p class="text-muted">More report types and export formats (PDF, Excel) can be added later.</p>
+        @else
+            <button class="btn btn-outline-secondary" disabled style="margin-left:8px">
+                Export Purchases CSV (admins only)
+            </button>
+        @endif
+
+    </div>
 
     @if(!empty($rows))
         <div class="card mt-3 p-3">
@@ -79,101 +90,91 @@
             @include('partials.transactions-table', ['rows' => $rows])
         </div>
     @endif
-
 </div>
 @endsection
 
+
 @push('scripts')
 <script>
-    (function () {
-        const canvas = document.getElementById('profitChart');
-        if (!canvas) return;
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js is not loaded.');
-            return;
+(function () {
+
+    const canvas = document.getElementById('profitChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const seriesUrl = @json(route('admin.reports.series'));
+
+    let labels = [];
+    let values = [];
+
+    try {
+        labels = JSON.parse(canvas.dataset.labels || '[]');
+        values = JSON.parse(canvas.dataset.values || '[]');
+    } catch (e) {
+        console.error('Invalid chart data:', e);
+    }
+
+    const chart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Profit (daily)',
+                data: values,
+                fill: true,
+                backgroundColor: 'rgba(54,162,235,0.08)',
+                borderColor: 'rgba(54,162,235,1)',
+                tension: 0.2,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { display: false } }
         }
+    });
 
-        const exportUrl = @json(route('admin.reports.export'));
-        const seriesUrl = @json(route('admin.reports.series'));
+    const form = document.getElementById('chartFilterForm');
+    if (!form) return;
 
-        let initialLabels = [];
-        let initialValues = [];
+    form.addEventListener('submit', async function (ev) {
+
+        if (ev.submitter && ev.submitter.value === 'profit_loss') return;
+
+        ev.preventDefault();
+
+        const fd = new FormData(form);
+        const params = new URLSearchParams(fd);
+
         try {
-            initialLabels = JSON.parse(canvas.getAttribute('data-labels') || '[]');
-            initialValues = JSON.parse(canvas.getAttribute('data-values') || '[]');
-        } catch (e) {
-            console.error('Invalid chart data attributes:', e);
-        }
-
-        const ctx = canvas.getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: initialLabels,
-                datasets: [{
-                    label: 'Profit (daily)',
-                    data: initialValues,
-                    fill: true,
-                    backgroundColor: 'rgba(54,162,235,0.08)',
-                    borderColor: 'rgba(54,162,235,1)',
-                    tension: 0.2,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                }]
-            },
-            options: {
-                responsive: true,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + ctx.formattedValue; } } }
-                },
-                scales: {
-                    x: { display: true, title: { display: false } },
-                    y: { display: true, title: { display: true, text: 'Amount' } }
+            const res = await fetch(`${seriesUrl}?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
-            }
-        });
+            });
 
-        function setExportInputs(from, to) {
-            document.querySelectorAll('.js-export-form input[name="date_from"]').forEach(i => i.value = from);
-            document.querySelectorAll('.js-export-form input[name="date_to"]').forEach(i => i.value = to);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            const json = await res.json();
+
+            chart.data.labels = json.labels || [];
+            chart.data.datasets[0].data = json.values || [];
+            chart.update();
+
+            document.querySelectorAll('.js-export-form input[name="date_from"]')
+                .forEach(i => i.value = fd.get('date_from') || '');
+
+            document.querySelectorAll('.js-export-form input[name="date_to"]')
+                .forEach(i => i.value = fd.get('date_to') || '');
+
+        } catch (err) {
+            console.error(err);
+            alert('Could not load chart data.');
         }
 
-        const form = document.getElementById('chartFilterForm');
-        if (!form) return;
+    });
 
-        form.addEventListener('submit', async function (ev) {
-            ev.preventDefault();
-
-            const fd = new FormData(form);
-            const params = new URLSearchParams();
-            if (fd.get('date_from')) params.append('date_from', fd.get('date_from'));
-            if (fd.get('date_to')) params.append('date_to', fd.get('date_to'));
-
-            try {
-                const response = await fetch(seriesUrl + '?' + params.toString(), {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-                });
-
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-
-                const json = await response.json();
-                const labels = json.labels || [];
-                const values = json.values || [];
-
-                chart.data.labels = labels;
-                chart.data.datasets[0].data = values;
-                chart.update();
-
-                const from = fd.get('date_from') || labels[0] || '';
-                const to = fd.get('date_to') || labels[labels.length - 1] || '';
-                setExportInputs(from, to);
-            } catch (err) {
-                console.error('Failed to fetch series:', err);
-                alert('Could not load chart data. Please try again or reload the page.');
-            }
-        });
-    })();
+})();
 </script>
 @endpush
