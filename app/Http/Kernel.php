@@ -68,5 +68,6 @@ class Kernel extends HttpKernel
         'ensure.role' => \App\Http\Middleware\EnsureRole::class,
         'single.role.enforcer' => \App\Http\Middleware\SingleRoleEnforcer::class,
         'audit.log' => \App\Http\Middleware\AuditLogMiddleware::class,
+        'admin.or.manager' => \App\Http\Middleware\AdminOrManager::class,
     ];
 }
