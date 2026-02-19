@@ -101,7 +101,7 @@
     const canvas = document.getElementById('profitChart');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const seriesUrl = @json(route('admin.reports.series'));
+    const seriesUrl = @json((string) route('admin.reports.series'));
 
     let labels = [];
     let values = [];
