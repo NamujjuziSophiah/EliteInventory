@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\ActivityLog;
 
 /**
@@ -20,19 +21,34 @@ class AuditLogMiddleware
         if (in_array($method, ['POST','PUT','PATCH','DELETE'])) {
             try {
                 $user = Auth::user();
+
+                $payload = $request->all();
+                $json = json_encode($payload);
+                if ($json === false) {
+                    $json = json_encode(['error' => 'json_encode failed']);
+                }
+                // truncate to 1000 chars if needed
+                if (mb_strlen($json) > 1000) {
+                    $json = mb_substr($json, 0, 1000);
+                }
+
+                $auditableType = $request->route() ? ($request->route()->getName() ?? $request->path()) : $request->path();
+                $auditableId = $request->route() ? ($request->route()->parameter('id') ?? null) : null;
+
                 ActivityLog::create([
                     'user_id' => $user->id ?? null,
                     'role' => $user->role ?? null,
-                    'auditable_type' => $request->route() ? ($request->route()->getName() ?? $request->path()) : $request->path(),
-                    'auditable_id' => null,
+                    'auditable_type' => $auditableType,
+                    'auditable_id' => $auditableId,
                     'action' => $method,
                     'old_values' => null,
-                    'new_values' => strlen(json_encode($request->all())) > 1000 ? substr(json_encode($request->all()), 0, 1000) : $request->all(),
+                    'new_values' => $json,
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                 ]);
             } catch (\Exception $e) {
-                // Do not break request on logging failure
+                // log the exception so we can diagnose why audit logging fails
+                Log::error('AuditLogMiddleware failed', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             }
         }
 
