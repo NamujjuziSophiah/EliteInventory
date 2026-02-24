@@ -148,30 +148,46 @@ const SERIES_URL = "{{ route('admin.reports.series') }}";
         const fd = new FormData(form);
         const params = new URLSearchParams(fd);
 
-        try {
-            const res = await fetch(seriesUrl + '?' + params.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+            try {
+                const res = await fetch(seriesUrl + '?' + params.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!res.ok) {
+                    const text = await res.text().catch(() => '');
+                    throw new Error('HTTP ' + res.status + (text ? ': ' + text : ''));
                 }
-            });
+                const json = await res.json();
 
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const json = await res.json();
+                chart.data.labels = json.labels || [];
+                chart.data.datasets[0].data = json.values || [];
+                chart.update();
 
-            chart.data.labels = json.labels || [];
-            chart.data.datasets[0].data = json.values || [];
-            chart.update();
+                document.querySelectorAll('.js-export-form input[name="date_from"]')
+                    .forEach(function(i) { i.value = fd.get('date_from') || ''; });
 
-            document.querySelectorAll('.js-export-form input[name="date_from"]')
-                .forEach(function(i) { i.value = fd.get('date_from') || ''; });
+                document.querySelectorAll('.js-export-form input[name="date_to"]')
+                    .forEach(function(i) { i.value = fd.get('date_to') || ''; });
 
-            document.querySelectorAll('.js-export-form input[name="date_to"]')
-                .forEach(function(i) { i.value = fd.get('date_to') || ''; });
-        } catch (err) {
-            console.error(err);
-            alert('Could not load chart data.');
-        }
+                const prev = document.getElementById('chart-error-msg');
+                if (prev) prev.remove();
+
+            } catch (err) {
+                console.error('Could not load chart series:', err);
+                let msg = document.getElementById('chart-error-msg');
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.id = 'chart-error-msg';
+                    msg.className = 'alert alert-warning mt-2';
+                    msg.textContent = 'Could not load chart data. See browser console for details.';
+                    form.parentNode.insertBefore(msg, form.nextSibling);
+                } else {
+                    msg.textContent = 'Could not load chart data. See browser console for details.';
+                }
+            }
     });
 })();
 </script>

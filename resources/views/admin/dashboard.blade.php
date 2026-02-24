@@ -294,7 +294,15 @@
             </div>
 
             <div class="col-md-3">
-                <a href="{{ Route::has('manager.dashboard')?route('manager.dashboard'):'#' }}" class="text-decoration-none">
+                @php
+                    $managerUrl = '#';
+                    if (auth()->check() && (auth()->user()->role ?? null) === 'admin' && Route::has('admin.manager.dashboard')) {
+                        $managerUrl = route('admin.manager.dashboard');
+                    } elseif (Route::has('manager.dashboard')) {
+                        $managerUrl = route('manager.dashboard');
+                    }
+                @endphp
+                <a href="{{ $managerUrl }}" class="text-decoration-none">
                     <div class="card bg-secondary text-white p-3">
                         <h6>Manager</h6>
                         <div class="display-6">Go</div>
