@@ -210,6 +210,9 @@ Route::middleware(['auth'])->group(function () {
     // Manager
     Route::middleware(['ensure.role:manager'])->prefix('manager')->group(function () {
         Route::get('/', [ManagerDashboardController::class, 'index'])->name('manager.dashboard');
+        // Manager sales report (read-only)
+        Route::get('reports/sales', [\App\Http\Controllers\Manager\ReportsController::class, 'sales'])
+            ->name('manager.reports.sales');
     // Manager sales (read-only), purchases and reports (limited)
     // Managers should NOT create sales; only view them. Cashiers handle live POS checkout.
     Route::resource('sales', ManagerSalesController::class)->only(['index','show'])->names('manager.sales');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Manager;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\DashboardService;
 
 class ReportsController extends Controller
 {
@@ -18,7 +19,13 @@ class ReportsController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        return view('manager.reports.sales', compact('rows','from','to'));
+        // Provide a lightweight sales trend (last 7 days) for chart rendering
+        $svc = new DashboardService();
+        $trend = $svc->getSalesTrend(7);
+
+        return view('manager.reports.sales', compact('rows','from','to'))
+            ->with('salesTrendLabels', $trend['labels'])
+            ->with('salesTrendData', $trend['data']);
     }
 
     public function exportSales(Request $request)
