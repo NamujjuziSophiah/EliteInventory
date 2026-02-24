@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AuditLogController extends Controller
 {
@@ -31,6 +32,7 @@ class AuditLogController extends Controller
         }
 
         // paginate and preserve current query string parameters for pagination links
+        /** @var LengthAwarePaginator $logs */
         $logs = $query->orderBy('created_at', 'desc')->paginate(25)->appends($request->query());
 
         // Normalize attributes so the existing audit view (which expected `ip`, `meta`) continues to work.
@@ -43,7 +45,7 @@ class AuditLogController extends Controller
             return $item;
         });
 
-        $actions = AuditLog::select('action')->distinct()->pluck('action');
+        $actions = ActivityLog::select('action')->distinct()->pluck('action');
         $users = User::select('id','name')->orderBy('name')->get();
 
         return view('admin.audit.index', compact('logs','actions','users'));
