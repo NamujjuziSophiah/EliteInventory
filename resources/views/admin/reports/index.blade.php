@@ -148,13 +148,22 @@ const SERIES_URL = "{{ route('admin.reports.series') }}";
         const fd = new FormData(form);
         const params = new URLSearchParams(fd);
 
-            try {
+                try {
                 const res = await fetch(seriesUrl + '?' + params.toString(), {
+                    // ensure session cookies are sent so the backend can authenticate
+                    credentials: 'same-origin',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     }
                 });
+
+                // If the server indicates we are not authenticated/authorized,
+                // redirect the user to the login page so they can re-authenticate.
+                if (res.status === 401 || res.status === 403) {
+                    window.location = "{{ route('login') }}";
+                    return;
+                }
 
                 if (!res.ok) {
                     const text = await res.text().catch(() => '');
