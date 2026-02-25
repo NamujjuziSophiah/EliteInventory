@@ -69,7 +69,9 @@ class ReportsController extends Controller
             $profitSeries[] = round($profit, 2);
         }
 
-        return view('admin.reports.index', ['labels' => $labels, 'profitSeries' => $profitSeries]);
+        // Provide both `profitLabels` (used by the blade) and `labels`
+        // for any code that may reference the shorter name.
+        return view('admin.reports.index', ['profitLabels' => $labels, 'labels' => $labels, 'profitSeries' => $profitSeries]);
     }
 
     /**

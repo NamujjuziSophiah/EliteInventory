@@ -14,7 +14,8 @@ class ReportsSeriesTest extends TestCase
     public function admin_can_fetch_reports_series_json()
     {
         // create an admin user
-        $user = User::factory()->create([ 'role' => 'admin' ]);
+            /** @var \App\Models\User $user */
+        $user = User::factory()->create(['role' => 'admin']);
 
         $this->actingAs($user)
             ->getJson(route('admin.reports.series', [

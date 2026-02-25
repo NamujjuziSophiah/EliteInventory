@@ -160,6 +160,14 @@ const SERIES_URL = "{{ route('admin.reports.series') }}";
                     const text = await res.text().catch(() => '');
                     throw new Error('HTTP ' + res.status + (text ? ': ' + text : ''));
                 }
+
+                // Ensure we actually received JSON (protect against HTML redirects/login pages)
+                const ct = (res.headers.get('Content-Type') || '');
+                if (!ct.includes('application/json')) {
+                    const text = await res.text().catch(() => '');
+                    throw new Error('Unexpected content-type: ' + ct + (text ? ': ' + text.slice(0,200) : ''));
+                }
+
                 const json = await res.json();
 
                 chart.data.labels = json.labels || [];
